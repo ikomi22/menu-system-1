@@ -1,0 +1,6 @@
+{
+  "name": "Visual Menu System",
+  "description": "A luxury, offline-first digital food cataloging system for tablets, paired with an administrative dashboard for menu management and real-time synchronizations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
