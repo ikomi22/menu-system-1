@@ -29,7 +29,6 @@ import {
   FileText
 } from 'lucide-react';
 import { MenuItem, RestaurantConfig, Category, OFFICIAL_ALLERGENS } from '../types';
-import CustomerApp from './CustomerApp';
 
 // Presets Chef Gallery of food URLs so users can easily select gorgeous pictures
 const CHEF_PRESET_IMAGES = [
@@ -50,9 +49,10 @@ interface AdminPanelProps {
   onUpdateConfig: (updates: Partial<RestaurantConfig>) => void;
   isOffline: boolean;
   onToggleOffline: () => void;
+  onLaunchKiosk: () => void;
 }
 
-type AdminTab = 'dashboard' | 'add-item' | 'edit-item' | 'preview' | 'settings';
+type AdminTab = 'dashboard' | 'add-item' | 'edit-item' | 'settings';
 
 export default function AdminPanel({
   menuItems,
@@ -62,7 +62,8 @@ export default function AdminPanel({
   config,
   onUpdateConfig,
   isOffline,
-  onToggleOffline
+  onToggleOffline,
+  onLaunchKiosk
 }: AdminPanelProps) {
   // Auth flow state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -501,16 +502,12 @@ export default function AdminPanel({
               </button>
 
               <button
-                id="sidebar-tab-preview"
-                onClick={() => { setActiveTab('preview'); setEditingItemId(null); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
-                  activeTab === 'preview'
-                    ? 'bg-[#2D5E3A]/10 text-slate-900 border-l-4 border-[#2D5E3A]' 
-                    : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
-                }`}
+                id="sidebar-launch-kiosk-btn"
+                onClick={onLaunchKiosk}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer bg-[#A83A35] text-white hover:bg-[#2D5E3A]"
               >
-                <Tablet className="w-4 h-4 shrink-0 text-[#2D5E3A]" />
-                <span>Kiosk Live Preview</span>
+                <Tablet className="w-4 h-4 shrink-0" />
+                <span>Launch Menu</span>
               </button>
 
               <button
@@ -649,12 +646,12 @@ export default function AdminPanel({
                   </button>
                     
                   <button
-                    id="preview-menu-header-btn"
-                    onClick={() => setActiveTab('preview')}
-                    className="bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold uppercase tracking-wider px-3 py-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                    id="launch-kiosk-header-btn"
+                    onClick={onLaunchKiosk}
+                    className="bg-[#A83A35] hover:bg-[#2D5E3A] text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-lg shadow-[#A83A35]/10 cursor-pointer transition-all"
                   >
-                    <Tablet className="w-4 h-4 text-[#2D5E3A]" />
-                    Tablet View
+                    <Tablet className="w-4 h-4" />
+                    Launch Menu
                   </button>
                 </div>
               </div>
@@ -1157,61 +1154,7 @@ export default function AdminPanel({
             </div>
           )}
 
-          {/* TAB 4: PREVIEW MODE (Awesome decorative tablet screen of Section 4) */}
-          {activeTab === 'preview' && (
-            <div className="space-y-6">
-              
-              {/* Gold Top Banner info */}
-              <div className="bg-[#A83A35] p-4 rounded-xl flex items-center justify-between shadow text-white gap-4 select-none">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-white">
-                    <Sparkles className="w-4 h-4 text-white fill-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-serif font-bold text-sm tracking-wide leading-none">Tablet Preview Session</h3>
-                    <span className="text-[10px] uppercase font-bold tracking-widest block mt-0.5 opacity-80">
-                      Live content Synchronization Active
-                    </span>
-                  </div>
-                </div>
-
-                <div className="hidden lg:flex items-center gap-1.5 text-xs font-semibold bg-black/10 px-3 py-1.5 rounded-lg select-none">
-                  <Eye className="w-4 h-4 text-white" />
-                  <span>Interactive Simulator Mode</span>
-                </div>
-              </div>
-
-              {/* Tablet frame container */}
-              <div className="flex justify-center items-center py-4 bg-slate-100 border border-slate-200 rounded-3xl p-6 min-h-[640px] relative overflow-hidden select-none shadow-inner">
-                
-                {/* PORTRAIT INDUSTRIAL TABLET MOCKUP FRAME */}
-                <div className="w-full max-w-[420px] aspect-[10/16] bg-slate-950 border-[14px] border-slate-900 rounded-[38px] shadow-[0_30px_70px_rgba(0,0,0,0.55)] relative overflow-hidden flex flex-col pt-4">
-                  
-                  {/* Speaker mesh pill */}
-                  <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-neutral-800 rounded-full z-40" />
-                  
-                  {/* Camera hole dot */}
-                  <div className="absolute top-1.5 right-6 w-1.5 h-1.5 bg-neutral-800 rounded-full z-40" />
-
-                  {/* Render real live Kiosk app inside tablet frame! */}
-                  <div className="flex-1 w-full h-full bg-[#1A1A1A] overflow-hidden rounded-t-[12px] relative">
-                    <CustomerApp
-                      menuItems={menuItems}
-                      config={config}
-                      isOffline={isOffline}
-                    />
-                  </div>
-
-                  {/* Tablet tactile soft home indent indicator */}
-                  <div className="bg-slate-900 h-8 flex items-center justify-center pb-1">
-                    <div className="w-[35%] h-1 bg-neutral-700 rounded-full z-40" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 5: SETTINGS */}
+          {/* TAB 4: SETTINGS */}
           {activeTab === 'settings' && (
             <div className="max-w-xl mx-auto bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden select-none">
               

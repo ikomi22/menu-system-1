@@ -6,6 +6,7 @@ export const DEFAULT_CONFIG: RestaurantConfig = {
   primaryColour: '#A83A35',
   accentColour: '#1C1B19',
   welcomeMessage: 'Authentic Italian flavours, crafted with passion.',
+  pin: '1234',
   lastUpdated: Date.now(),
 };
 

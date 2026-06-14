@@ -27,6 +27,7 @@ export interface RestaurantConfig {
   primaryColour: string; // hex
   accentColour: string; // hex
   welcomeMessage: string;
+  pin: string;
   lastUpdated: number;
 }
 

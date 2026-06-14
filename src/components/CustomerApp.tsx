@@ -26,7 +26,7 @@ interface CustomerAppProps {
   menuItems: MenuItem[];
   config: RestaurantConfig;
   isOffline: boolean;
-  onExitKiosk?: () => void;
+  onReturnToAdmin: () => void;
 }
 
 type CustomerScreen = 'welcome' | 'category' | 'browse' | 'detail';
@@ -35,13 +35,42 @@ export default function CustomerApp({
   menuItems,
   config,
   isOffline,
-  onExitKiosk
+  onReturnToAdmin
 }: CustomerAppProps) {
   // Navigation and view states
   const [screen, setScreen] = useState<CustomerScreen>('welcome');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  // PIN exit: 5 taps on top-right corner within 3s
+  const [pinOverlayOpen, setPinOverlayOpen] = useState(false);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(false);
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleCornerTap = () => {
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+    tapTimerRef.current = setTimeout(() => { tapCountRef.current = 0; }, 3000);
+    if (tapCountRef.current >= 5) {
+      tapCountRef.current = 0;
+      setPinInput('');
+      setPinError(false);
+      setPinOverlayOpen(true);
+    }
+  };
+
+  const handlePinSubmit = () => {
+    if (pinInput === (config.pin ?? '1234')) {
+      setPinOverlayOpen(false);
+      onReturnToAdmin();
+    } else {
+      setPinError(true);
+      setPinInput('');
+    }
+  };
 
   // Inactivity tracking
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -144,15 +173,47 @@ export default function CustomerApp({
         </div>
       )}
 
-      {/* Floating Exit Kiosk overlay trigger of the prototype container for easy escape */}
-      {onExitKiosk && (
-        <button 
-          id="exit-kiosk-btn"
-          onClick={onExitKiosk}
-          className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-[#a0a0a0] text-xs px-3 py-1.5 rounded-full border border-white/10 hover:border-[#2D5E3A]/50 hover:text-white transition-all z-50 shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
-        >
-          Exit Kiosk Mode
-        </button>
+      {/* Hidden 5-tap exit zone — top-right corner, invisible to customers */}
+      <div
+        className="absolute top-0 right-0 w-14 h-14 z-50"
+        onClick={handleCornerTap}
+      />
+
+      {/* PIN overlay — appears after 5-tap gesture */}
+      {pinOverlayOpen && (
+        <div className="absolute inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-[#1C1B19] border border-white/10 rounded-2xl p-8 w-72 flex flex-col items-center gap-5 shadow-2xl">
+            <p className="text-white text-sm font-semibold tracking-wide">Enter Admin PIN</p>
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={8}
+              autoFocus
+              value={pinInput}
+              onChange={e => { setPinInput(e.target.value); setPinError(false); }}
+              onKeyDown={e => e.key === 'Enter' && handlePinSubmit()}
+              className={`w-full text-center text-2xl tracking-[0.5em] bg-black/40 border rounded-xl px-4 py-3 text-white outline-none transition-all ${
+                pinError ? 'border-red-500' : 'border-white/20 focus:border-[#2D5E3A]'
+              }`}
+              placeholder="••••"
+            />
+            {pinError && <p className="text-red-400 text-xs -mt-2">Incorrect PIN</p>}
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={() => setPinOverlayOpen(false)}
+                className="flex-1 py-2.5 rounded-xl border border-white/10 text-white/50 text-sm hover:text-white transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePinSubmit}
+                className="flex-1 py-2.5 rounded-xl bg-[#2D5E3A] text-white text-sm font-semibold hover:bg-[#3a7a4c] transition-all"
+              >
+                Unlock
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Main Kiosk Layout Body */}
@@ -253,9 +314,6 @@ export default function CustomerApp({
                     <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Starters & Nibbles</h3>
                     <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Olives · Garlic Bread · Bruschetta · Mains</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
-                    Select
-                  </div>
                 </motion.button>
 
                 {/* MAINS CARD */}
@@ -270,9 +328,6 @@ export default function CustomerApp({
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
                     <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Mains</h3>
                     <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Lamb Shank · Seabass · Chicken · Short Rib</p>
-                  </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
-                    Select
                   </div>
                 </motion.button>
 
@@ -289,9 +344,6 @@ export default function CustomerApp({
                     <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Pasta & Risotto</h3>
                     <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Carbonara · Linguine · Lasagne · Risotto</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
-                    Select
-                  </div>
                 </motion.button>
 
                 {/* PIZZA CARD */}
@@ -306,9 +358,6 @@ export default function CustomerApp({
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
                     <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Pizza</h3>
                     <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Stone-baked · Build Your Own · 9 Varieties</p>
-                  </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
-                    Select
                   </div>
                 </motion.button>
 
@@ -325,9 +374,6 @@ export default function CustomerApp({
                     <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Desserts</h3>
                     <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Eton Mess · Cheesecake · Brownie · Ice Cream</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
-                    Select
-                  </div>
                 </motion.button>
 
                 {/* DRINKS CARD */}
@@ -342,9 +388,6 @@ export default function CustomerApp({
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
                     <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Drinks</h3>
                     <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Cocktails · Wine · Beer · Soft Drinks</p>
-                  </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
-                    Select
                   </div>
                 </motion.button>
 
