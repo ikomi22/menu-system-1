@@ -547,7 +547,7 @@ export default function AdminPanel({
 
           <div className="px-4">
             <div className="p-3 bg-zinc-900 text-white rounded-xl text-center select-none border border-white/5 space-y-2">
-              <span className="text-[10px] font-semibold text-gold-400 block tracking-wider">Kiosk State Hub</span>
+              <span className="text-[10px] font-semibold text-[#C04840] block tracking-wider">Kiosk State Hub</span>
               <p className="text-[8px] text-[#a0a0a0] leading-normal font-light">
                 Real-time tablet fleet synchronization is live and fully active.
               </p>
@@ -1164,8 +1164,8 @@ export default function AdminPanel({
               {/* Gold Top Banner info */}
               <div className="bg-[#A83A35] p-4 rounded-xl flex items-center justify-between shadow text-white gap-4 select-none">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-[#1A1A1A]">
-                    <Sparkles className="w-4 h-4 text-[#1A1A1A] fill-[#1A1A1A]" />
+                  <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-white">
+                    <Sparkles className="w-4 h-4 text-white fill-white" />
                   </div>
                   <div>
                     <h3 className="font-serif font-bold text-sm tracking-wide leading-none">Tablet Preview Session</h3>
@@ -1176,7 +1176,7 @@ export default function AdminPanel({
                 </div>
 
                 <div className="hidden lg:flex items-center gap-1.5 text-xs font-semibold bg-black/10 px-3 py-1.5 rounded-lg select-none">
-                  <Eye className="w-4 h-4 text-[#1A1A1A]" />
+                  <Eye className="w-4 h-4 text-white" />
                   <span>Interactive Simulator Mode</span>
                 </div>
               </div>
