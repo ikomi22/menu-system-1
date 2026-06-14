@@ -5,37 +5,35 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  ArrowLeft, 
-  Eye, 
-  EyeOff, 
-  HelpCircle, 
-  Sparkles, 
-  Flame, 
-  Check, 
-  WifiOff, 
-  ShieldAlert,
-  Clock
+import {
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  Sparkles,
+  Flame,
+  Check,
+  WifiOff,
+  ShieldAlert
 } from 'lucide-react';
 import { MenuItem, RestaurantConfig, Category, OFFICIAL_ALLERGENS } from '../types';
 import { CATEGORY_FALLBACK_IMAGES } from '../data';
+import FoodAnimation from './FoodAnimation';
 
 interface CustomerAppProps {
   menuItems: MenuItem[];
   config: RestaurantConfig;
   isOffline: boolean;
   onExitKiosk?: () => void;
-  testInactivitySpeed?: boolean; // If true, inactivity timeout is shorter (15 seconds) for easy demonstration
 }
 
 type CustomerScreen = 'welcome' | 'category' | 'browse' | 'detail';
 
-export default function CustomerApp({ 
-  menuItems, 
-  config, 
-  isOffline, 
-  onExitKiosk,
-  testInactivitySpeed = false
+export default function CustomerApp({
+  menuItems,
+  config,
+  isOffline,
+  onExitKiosk
 }: CustomerAppProps) {
   // Navigation and view states
   const [screen, setScreen] = useState<CustomerScreen>('welcome');
@@ -43,9 +41,7 @@ export default function CustomerApp({
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
 
   // Inactivity tracking
-  const [secondsUntilReset, setSecondsUntilReset] = useState(testInactivitySpeed ? 15 : 180);
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // List of active items (available: true)
   const activeItems = menuItems.filter(item => item.available);
@@ -55,29 +51,13 @@ export default function CustomerApp({
 
   // Reset inactivity timer on any interaction
   const resetInactivityTimer = () => {
-    const defaultTime = testInactivitySpeed ? 15 : 180;
-    setSecondsUntilReset(defaultTime);
-
     if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
 
-    // After the designated time, reset state to welcome screen
     inactivityTimerRef.current = setTimeout(() => {
       setScreen('welcome');
       setSelectedCategory(null);
       setSelectedItem(null);
-    }, defaultTime * 1000);
-
-    // Countdown updates
-    countdownTimerRef.current = setInterval(() => {
-      setSecondsUntilReset(prev => {
-        if (prev <= 1) {
-          if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    }, 180000);
   };
 
   // Monitor user activity
@@ -101,9 +81,8 @@ export default function CustomerApp({
       window.removeEventListener('mousemove', handleInteraction);
       window.removeEventListener('keydown', handleInteraction);
       if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-      if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
     };
-  }, [screen, testInactivitySpeed, menuItems]);
+  }, [screen, menuItems]);
 
   const selectCategory = (cat: Category) => {
     setSelectedCategory(cat);
@@ -146,7 +125,7 @@ export default function CustomerApp({
       {/* SCREEN 6 - Offline Banner (Thin non-intrusive strip) */}
       {isOffline && (
         <div id="offline-banner" className="h-7 bg-[#2c2c2c] border-b border-yellow-600/20 flex items-center justify-center gap-2 px-4 shadow-[0_2px_10px_rgba(0,0,0,0.5)] z-50 shrink-0">
-          <WifiOff className="w-3.5 h-3.5 text-[#E8B84B]" />
+          <WifiOff className="w-3.5 h-3.5 text-[#C04840]" />
           <span className="font-sans text-[#a0a0a0] text-[11px] tracking-wide font-medium">
             Menu loaded locally • Last updated {new Date(config.lastUpdated).toLocaleDateString()} at {new Date(config.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
@@ -158,17 +137,11 @@ export default function CustomerApp({
         <button 
           id="exit-kiosk-btn"
           onClick={onExitKiosk}
-          className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-[#a0a0a0] text-xs px-3 py-1.5 rounded-full border border-white/10 hover:border-[#C9A84C]/50 hover:text-white transition-all z-50 shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+          className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-[#a0a0a0] text-xs px-3 py-1.5 rounded-full border border-white/10 hover:border-[#A83A35]/50 hover:text-white transition-all z-50 shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
         >
           Exit Kiosk Mode
         </button>
       )}
-
-      {/* Inactivity warning hint for debugging & demo */}
-      <div className="absolute bottom-4 left-4 bg-black/40 backdrop-blur-md text-[10px] text-[#a0a0a0]/60 px-2.5 py-1 rounded border border-white/5 pointer-events-none z-50">
-        <Clock className="inline w-2.5 h-2.5 mr-1 align-middle -mt-0.5" />
-        Idle reset in {secondsUntilReset}s
-      </div>
 
       {/* Main Kiosk Layout Body */}
       <div className="flex-1 overflow-hidden relative">
@@ -184,17 +157,17 @@ export default function CustomerApp({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
               className="absolute inset-0 flex flex-col items-center justify-between py-16 px-8 relative bg-cover bg-center"
-              style={{ 
-                backgroundImage: `linear-gradient(rgba(26, 26, 26, 0.85), rgba(26, 26, 26, 0.92)), url('https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=1600&auto=format&fit=crop&q=80')`
+              style={{
+                backgroundImage: `linear-gradient(rgba(26, 26, 26, 0.85), rgba(26, 26, 26, 0.92)), url('/arco/arco1.jpg')`
               }}
             >
               <div className="flex flex-col items-center mt-12">
                 {/* Logo Frame */}
-                <div className="w-20 h-20 rounded-full border-2 border-[#C9A84C] p-1.5 flex items-center justify-center bg-black/40 shadow-xl overflow-hidden mb-6">
+                <div className="w-20 h-20 rounded-full border-2 border-[#A83A35] p-1.5 flex items-center justify-center bg-black/40 shadow-xl overflow-hidden mb-6">
                   {config.logo ? (
                     <img src={config.logo} alt="Restaurant Logo" referrerPolicy="no-referrer" className="w-full h-full object-cover rounded-full" />
                   ) : (
-                    <span className="text-xl font-serif text-[#C9A84C] font-semibold">{config.name.substring(0, 1)}</span>
+                    <span className="text-xl font-serif text-[#A83A35] font-semibold">{config.name.substring(0, 1)}</span>
                   )}
                 </div>
 
@@ -218,9 +191,9 @@ export default function CustomerApp({
                   onClick={() => setScreen('category')}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
-                  className="w-full h-14 rounded-lg bg-[#C9A84C] text-[#1A1A1A] font-display font-semibold uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(201,168,76,0.25)] hover:bg-[#d6b75f] transition-all cursor-pointer"
+                  className="w-full h-14 rounded-lg bg-[#A83A35] text-white font-display font-semibold uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(168,58,53,0.25)] hover:bg-[#2D5E3A] transition-all cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4 fill-[#1A1A1A]" />
+                  <Sparkles className="w-4 h-4 fill-white" />
                   Explore Our Menu
                 </motion.button>
               </div>
@@ -244,50 +217,86 @@ export default function CustomerApp({
                     onClick={() => setScreen('welcome')}
                     className="group flex items-center gap-2 text-[#a0a0a0] hover:text-white transition-colors cursor-pointer"
                   >
-                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#C9A84C]" />
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#A83A35]" />
                     <span className="font-sans text-xs tracking-wider uppercase font-medium">Welcome</span>
                   </button>
-                  <span className="font-sans tracking-widest text-[#C9A84C] text-[10px] uppercase font-semibold">
+                  <span className="font-sans tracking-widest text-[#A83A35] text-[10px] uppercase font-semibold">
                     {config.name}
                   </span>
                   <div className="w-20" /> {/* Spacer */}
                 </div>
 
               {/* Categories block */}
-              <div className="flex-1 flex flex-col justify-center gap-4 mt-4 overflow-y-auto no-scrollbar py-2">
-                
-                {/* FOOD CARD */}
+              <div className="flex-1 grid grid-cols-2 gap-3 mt-4 overflow-y-auto no-scrollbar py-2">
+
+                {/* STARTERS CARD */}
                 <motion.button
-                  id="category-food-btn"
-                  onClick={() => selectCategory('food')}
+                  id="category-starters-btn"
+                  onClick={() => selectCategory('starters')}
                   whileTap={{ scale: 0.97 }}
-                  className="relative w-full h-[28%] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.food}')` }} />
-                  <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-medium tracking-wide">Food</h3>
-                    <p className="font-sans text-[#a0a0a0] text-xs mt-1 font-light">Starters • Signature Mains • Decadent Sides</p>
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.starters}')` }} />
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Starters & Nibbles</h3>
+                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Olives · Garlic Bread · Bruschetta · Mains</p>
                   </div>
-                  <div className="absolute top-4 right-4 text-xs tracking-wider font-semibold border border-[#C9A84C]/30 bg-black/40 text-[#C9A84C] px-3 py-1 rounded-full uppercase">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
 
-                {/* DRINKS CARD */}
+                {/* MAINS CARD */}
                 <motion.button
-                  id="category-drinks-btn"
-                  onClick={() => selectCategory('drinks')}
+                  id="category-mains-btn"
+                  onClick={() => selectCategory('mains')}
                   whileTap={{ scale: 0.97 }}
-                  className="relative w-full h-[28%] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.drinks}')` }} />
-                  <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-medium tracking-wide">Drinks</h3>
-                    <p className="font-sans text-[#a0a0a0] text-xs mt-1 font-light">Soft Refreshments • Crafted Cocktails • Wine Reserve</p>
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.mains}')` }} />
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Mains</h3>
+                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Lamb Shank · Seabass · Chicken · Short Rib</p>
                   </div>
-                  <div className="absolute top-4 right-4 text-xs tracking-wider font-semibold border border-[#C9A84C]/30 bg-black/40 text-[#C9A84C] px-3 py-1 rounded-full uppercase">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                    Select
+                  </div>
+                </motion.button>
+
+                {/* PASTA CARD */}
+                <motion.button
+                  id="category-pasta-btn"
+                  onClick={() => selectCategory('pasta')}
+                  whileTap={{ scale: 0.97 }}
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
+                >
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.pasta}')` }} />
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Pasta & Risotto</h3>
+                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Carbonara · Linguine · Lasagne · Risotto</p>
+                  </div>
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                    Select
+                  </div>
+                </motion.button>
+
+                {/* PIZZA CARD */}
+                <motion.button
+                  id="category-pizza-btn"
+                  onClick={() => selectCategory('pizza')}
+                  whileTap={{ scale: 0.97 }}
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
+                >
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.pizza}')` }} />
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Pizza</h3>
+                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Stone-baked · Build Your Own · 9 Varieties</p>
+                  </div>
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
@@ -297,15 +306,33 @@ export default function CustomerApp({
                   id="category-desserts-btn"
                   onClick={() => selectCategory('desserts')}
                   whileTap={{ scale: 0.97 }}
-                  className="relative w-full h-[28%] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105" 
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                        style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.desserts}')` }} />
-                  <div className="absolute inset-0 p-6 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-medium tracking-wide">Desserts</h3>
-                    <p className="font-sans text-[#a0a0a0] text-xs mt-1 font-light">Baked Crumbles • Gelatos • Signature Patisserie</p>
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Desserts</h3>
+                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Eton Mess · Cheesecake · Brownie · Ice Cream</p>
                   </div>
-                  <div className="absolute top-4 right-4 text-xs tracking-wider font-semibold border border-[#C9A84C]/30 bg-black/40 text-[#C9A84C] px-3 py-1 rounded-full uppercase">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                    Select
+                  </div>
+                </motion.button>
+
+                {/* DRINKS CARD */}
+                <motion.button
+                  id="category-drinks-btn"
+                  onClick={() => selectCategory('drinks')}
+                  whileTap={{ scale: 0.97 }}
+                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
+                >
+                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.drinks}')` }} />
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Drinks</h3>
+                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Cocktails · Wine · Beer · Soft Drinks</p>
+                  </div>
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
@@ -334,7 +361,7 @@ export default function CustomerApp({
                   }}
                   className="group flex items-center gap-2 text-[#a0a0a0] hover:text-white transition-colors cursor-pointer"
                 >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#C9A84C]" />
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#A83A35]" />
                   <span className="font-sans text-xs tracking-wider uppercase font-medium">Categories</span>
                 </button>
                 <span className="font-serif italic font-semibold text-white capitalize text-lg tracking-wide">
@@ -349,7 +376,7 @@ export default function CustomerApp({
               <div className="flex-1 overflow-y-auto no-scrollbar pt-4 pb-12">
                 {filteredItems.length === 0 ? (
                   <div className="h-48 flex flex-col items-center justify-center p-8 text-center bg-[#2C2C2C] border border-white/5 rounded-xl">
-                    <HelpCircle className="w-8 h-8 text-[#C9A84C]/40 mb-3 animate-pulse" />
+                    <HelpCircle className="w-8 h-8 text-[#A83A35]/40 mb-3 animate-pulse" />
                     <p className="font-serif italic text-white text-base">Nothing here yet</p>
                     <p className="font-sans text-[#a0a0a0] text-xs mt-1 leading-relaxed">
                       Our kitchen is preparing dishes for this section. Check back in a moment.
@@ -366,7 +393,7 @@ export default function CustomerApp({
                         transition={{ delay: index * 0.05 }}
                         onClick={() => selectItemDetail(item)}
                         whileTap={{ scale: 0.97 }}
-                        className="group bg-[#2C2C2C] border border-white/5 hover:border-[#C9A84C]/30 rounded-xl overflow-hidden flex flex-col shadow-lg cursor-pointer transition-colors duration-300 relative"
+                        className="group bg-[#2C2C2C] border border-white/5 hover:border-[#2D5E3A]/40 rounded-xl overflow-hidden flex flex-col shadow-lg cursor-pointer transition-colors duration-300 relative"
                       >
                         {/* 16:9 Image */}
                         <div className="aspect-16/9 w-full overflow-hidden relative select-none">
@@ -380,18 +407,28 @@ export default function CustomerApp({
                           
                           {/* Allergen small indicator icons on cover overlay if present */}
                           {item.allergens.length > 0 && (
-                            <div className="absolute top-2 right-2 bg-black/60 border border-white/5 rounded px-1.5 py-0.5 text-[8px] tracking-widest text-[#E8B84B] font-semibold uppercase">
+                            <div className="absolute top-2 right-2 bg-black/60 border border-white/5 rounded px-1.5 py-0.5 text-[8px] tracking-widest text-[#C04840] font-semibold uppercase">
                               Contains Allergens
                             </div>
                           )}
+                          {/* V / GF badges */}
+                          <div className="absolute bottom-2 left-2 flex gap-1">
+                            {item.isVegetarian && (
+                              <span className="text-[8px] font-bold uppercase tracking-wider bg-green-600/80 text-white px-1.5 py-0.5 rounded">V</span>
+                            )}
+                            {item.isGlutenFree && (
+                              <span className="text-[8px] font-bold uppercase tracking-wider bg-blue-600/80 text-white px-1.5 py-0.5 rounded">GF</span>
+                            )}
+                          </div>
+                          <FoodAnimation category={item.category} variant="card" />
                         </div>
 
                         {/* Dish title/price body */}
                         <div className="p-4 flex-1 flex flex-col justify-between gap-2.5">
-                          <h4 className="font-sans font-bold text-white text-sm line-clamp-1 group-hover:text-[#C9A84C] transition-colors leading-snug">
+                          <h4 className="font-sans font-bold text-white text-sm line-clamp-1 group-hover:text-[#A83A35] transition-colors leading-snug">
                             {item.name}
                           </h4>
-                          <span className="font-display font-medium text-[#C9A84C] text-[13px] tracking-wide block">
+                          <span className="font-display font-medium text-[#A83A35] text-[13px] tracking-wide block">
                             {formatPrice(item.price)}
                           </span>
                         </div>
@@ -416,13 +453,14 @@ export default function CustomerApp({
               {/* Image Banner Top Cover */}
               <div className="h-[40%] min-h-[220px] w-full relative select-none shrink-0">
                 <div className="w-full h-full relative">
-                  <img 
-                    src={selectedItem.imageUrl} 
-                    alt={selectedItem.name} 
+                  <img
+                    src={selectedItem.imageUrl}
+                    alt={selectedItem.name}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-black/30" />
+                  <FoodAnimation category={selectedItem.category} variant="hero" />
                 </div>
 
                 {/* Overlaid Elegant Back Button */}
@@ -432,7 +470,7 @@ export default function CustomerApp({
                     setSelectedItem(null);
                     setScreen('browse');
                   }}
-                  className="absolute top-4 left-4 h-9 w-9 rounded-full bg-black/65 border border-white/10 flex items-center justify-center text-white hover:bg-black hover:border-[#C9A84C]/40 transition-all select-none cursor-pointer scale-100 font-sans shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                  className="absolute top-4 left-4 h-9 w-9 rounded-full bg-black/65 border border-white/10 flex items-center justify-center text-white hover:bg-black hover:border-[#A83A35]/40 transition-all select-none cursor-pointer scale-100 font-sans shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
                 >
                   <ArrowLeft className="w-4 h-4 text-white" />
                 </button>
@@ -444,8 +482,16 @@ export default function CustomerApp({
                   <h2 className="font-serif text-white text-3xl font-semibold tracking-wide leading-tight">
                     {selectedItem.name}
                   </h2>
-                  <div className="mt-3 font-display font-bold text-xl text-[#C9A84C]">
-                    {formatPrice(selectedItem.price)}
+                  <div className="mt-3 flex items-center gap-3">
+                    <span className="font-display font-bold text-xl text-[#A83A35]">
+                      {formatPrice(selectedItem.price)}
+                    </span>
+                    {selectedItem.isVegetarian && (
+                      <span className="text-[8px] font-bold uppercase tracking-wider bg-green-600/80 text-white px-1.5 py-0.5 rounded">V</span>
+                    )}
+                    {selectedItem.isGlutenFree && (
+                      <span className="text-[8px] font-bold uppercase tracking-wider bg-blue-600/80 text-white px-1.5 py-0.5 rounded">GF</span>
+                    )}
                   </div>
 
                   <hr className="border-white/5 my-5" />
@@ -460,6 +506,47 @@ export default function CustomerApp({
                     </p>
                   </div>
                 </div>
+
+                {/* Pairs Well With */}
+                {(() => {
+                  const pairedItems = (selectedItem.pairedItemIds ?? [])
+                    .map(id => menuItems.find(m => m.id === id && m.available))
+                    .filter((m): m is MenuItem => m !== undefined)
+                    .slice(0, 2);
+                  return pairedItems.length > 0 ? (
+                    <div className="space-y-3">
+                      <h5 className="font-serif italic text-xs tracking-widest text-[#a0a0a0] uppercase font-semibold">
+                        Pairs Well With
+                      </h5>
+                      <div className="flex gap-3">
+                        {pairedItems.map(paired => (
+                          <button
+                            key={paired.id}
+                            onClick={() => selectItemDetail(paired)}
+                            className="flex-1 flex items-center gap-3 bg-[#2C2C2C] border border-white/5 hover:border-[#2D5E3A]/30 rounded-xl p-2.5 cursor-pointer transition-all group text-left"
+                          >
+                            <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
+                              <img
+                                src={paired.imageUrl}
+                                alt={paired.name}
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <span className="font-sans text-xs text-white font-semibold line-clamp-1 group-hover:text-[#A83A35] transition-colors block">
+                                {paired.name}
+                              </span>
+                              <span className="font-display text-[#3A7A4C] text-xs font-medium block mt-0.5">
+                                {formatPrice(paired.price)}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
 
                 {/* UK Allergens Section */}
                 <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
