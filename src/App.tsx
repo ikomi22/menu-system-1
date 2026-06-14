@@ -55,9 +55,6 @@ export default function App() {
   // Choose between presenting the tablet inside a simulated portrait shell vs full screen
   const [isFramed, setIsFramed] = useState<boolean>(true);
   
-  // Custom setting: speeds up the inactivity timer on Kiosk mode to 15s instead of 3m for easy demo
-  const [testInactivitySpeed, setTestInactivitySpeed] = useState<boolean>(false);
-
   // Write changes back to localStorage
   useEffect(() => {
     localStorage.setItem('vms_menu_items', JSON.stringify(menuItems));
@@ -135,22 +132,22 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D0D0D] text-slate-100 font-sans flex flex-col justify-between">
+    <div className="min-h-screen bg-[#1C1B19] text-slate-100 font-sans flex flex-col justify-between">
       
       {/* EXQUISITE PRODUCT DESIGN SELECTOR BAR */}
       <header className="bg-[#121212]/90 backdrop-blur-md border-b border-white/5 px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4 select-none z-50 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#C9A84C] to-[#E8B84B] text-slate-900 font-serif font-black flex items-center justify-center text-sm shadow-lg shadow-[#C9A84C]/10">
-            É
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#A83A35] to-[#C04840] text-white font-serif font-black flex items-center justify-center text-sm shadow-lg shadow-[#A83A35]/10">
+            A
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xs font-display font-medium tracking-widest text-[#C9A84C] uppercase">
+              <h1 className="text-xs font-display font-medium tracking-widest text-[#A83A35] uppercase">
                 {config.name}
               </h1>
-              <span className="text-[9px] uppercase font-bold tracking-widest bg-[#C9A84C]/10 border border-[#C9A84C]/20 px-1.5 py-0.5 rounded text-[#C9A84C] flex items-center gap-0.5">
+              <span className="text-[9px] uppercase font-bold tracking-widest bg-[#A83A35]/10 border border-[#A83A35]/20 px-1.5 py-0.5 rounded text-[#A83A35] flex items-center gap-0.5">
                 <Crown className="w-2.5 h-2.5" />
-                Premium Menu Kiosk
+                Visual Menu System
               </span>
             </div>
             <span className="text-[10px] text-neutral-400 font-sans font-light block mt-0.5">
@@ -166,7 +163,7 @@ export default function App() {
             onClick={() => setViewMode('customer')}
             className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 ${
               viewMode === 'customer'
-                ? 'bg-zinc-800 text-[#C9A84C] shadow-md border border-white/5'
+                ? 'bg-zinc-800 text-[#A83A35] shadow-md border border-white/5'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -179,7 +176,7 @@ export default function App() {
             onClick={() => setViewMode('admin')}
             className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 ${
               viewMode === 'admin'
-                ? 'bg-zinc-800 text-[#C9A84C] shadow-md border border-white/5'
+                ? 'bg-zinc-800 text-[#A83A35] shadow-md border border-white/5'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -258,7 +255,6 @@ export default function App() {
                         menuItems={menuItems}
                         config={config}
                         isOffline={isOffline}
-                        testInactivitySpeed={testInactivitySpeed}
                       />
                     </div>
                   </div>
@@ -272,7 +268,7 @@ export default function App() {
                     <span className="text-zinc-600">|</span>
                     <button
                       onClick={() => setIsFramed(false)}
-                      className="text-[#C9A84C] hover:text-[#ecd28c] font-semibold underline cursor-pointer"
+                      className="text-[#A83A35] hover:text-[#2D5E3A] font-semibold underline cursor-pointer"
                     >
                       Maximize to Full Device Screen
                     </button>
@@ -285,7 +281,6 @@ export default function App() {
                     menuItems={menuItems}
                     config={config}
                     isOffline={isOffline}
-                    testInactivitySpeed={testInactivitySpeed}
                   />
                 </div>
               )}
@@ -320,10 +315,10 @@ export default function App() {
 
       {/* FOOTER */}
       <footer className="bg-[#0A0A0A] border-t border-white/5 px-6 py-4 text-center select-none text-[11px] text-neutral-500 shrink-0 font-light font-sans flex flex-col md:flex-row justify-between items-center gap-2">
-        <span>L'Étoile Dorée Luxury Menu Kiosk System © 2026. Designed for bespoke hospitality tablet grids.</span>
+        <span>arco Bar &amp; Ristorante — Visual Menu System © 2026</span>
         <div className="flex gap-4 items-center">
           <span className="text-neutral-600">|</span>
-          <span className="text-[#C9A84C]/80 font-mono tracking-wider">
+          <span className="text-[#A83A35]/80 font-mono tracking-wider">
             All Real-Time Database State Localized & Synced
           </span>
         </div>
