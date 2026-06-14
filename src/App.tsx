@@ -131,6 +131,20 @@ export default function App() {
     }
   };
 
+  // Full-screen customer kiosk — no admin chrome
+  if (viewMode === 'customer' && !isFramed) {
+    return (
+      <div className="h-screen w-screen overflow-hidden bg-[#1A1A1A]">
+        <CustomerApp
+          menuItems={menuItems}
+          config={config}
+          isOffline={isOffline}
+          onExitKiosk={() => setIsFramed(true)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#1C1B19] text-slate-100 font-sans flex flex-col justify-between">
       
@@ -250,7 +264,7 @@ export default function App() {
                     <div className="absolute right-2.5 top-1/2 transform -translate-y-1/2 w-1.5 h-1.5 bg-neutral-800 rounded-full z-40 hidden md:block" />
 
                     {/* Active Tablet screen */}
-                    <div className="flex-1 w-full h-full bg-[#1A1A1A] overflow-hidden rounded-[24px] relative border border-white/5">
+                    <div className="absolute inset-[2px] bg-[#1A1A1A] overflow-hidden rounded-[24px] border border-white/5">
                       <CustomerApp
                         menuItems={menuItems}
                         config={config}

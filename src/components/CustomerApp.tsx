@@ -168,47 +168,46 @@ export default function CustomerApp({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.5 }}
-              className="absolute inset-0 flex flex-col items-center justify-between py-16 px-8 relative bg-cover bg-center"
+              className="absolute inset-0 flex flex-col items-center justify-center gap-10 px-8 bg-cover bg-center"
               style={{
                 backgroundImage: `linear-gradient(rgba(26, 26, 26, 0.85), rgba(26, 26, 26, 0.92)), url('/arco/arco1.jpg')`
               }}
             >
-              <div className="flex flex-col items-center mt-12">
-                {/* Logo Frame */}
-                <div className="w-20 h-20 rounded-full border-2 border-[#2D5E3A] p-1.5 flex items-center justify-center bg-black/40 shadow-xl overflow-hidden mb-6">
-                  {config.logo ? (
-                    <img src={config.logo} alt="Restaurant Logo" referrerPolicy="no-referrer" className="w-full h-full object-cover rounded-full" />
-                  ) : (
-                    <span className="text-xl font-serif text-[#2D5E3A] font-semibold">{config.name.substring(0, 1)}</span>
-                  )}
-                </div>
-
-                {/* Restaurant Name */}
-                <h1 className="font-serif text-3xl font-semibold tracking-wide text-white text-center px-4">
-                  {config.name}
-                </h1>
-                
-                {/* Short message */}
-                {config.welcomeMessage && (
-                  <p className="font-sans italic text-[#a0a0a0] text-sm text-center mt-3 max-w-sm px-6 font-light">
-                    "{config.welcomeMessage}"
-                  </p>
+              {/* Wordmark logo */}
+              <div className="w-full max-w-sm px-4">
+                {config.logo ? (
+                  <img
+                    src={config.logo}
+                    alt={config.name}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-auto object-contain"
+                    style={{ filter: 'invert(1)' }}
+                  />
+                ) : (
+                  <h1 className="font-serif text-6xl font-bold text-white text-center leading-tight">
+                    {config.name}
+                  </h1>
                 )}
               </div>
 
-              {/* Large Explore Menu CTA */}
-              <div className="w-full max-w-xs mb-10">
-                <motion.button
-                  id="welcome-explore-btn"
-                  onClick={() => setScreen('category')}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="w-full h-14 rounded-lg bg-[#A83A35] text-white font-display font-semibold uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(168,58,53,0.25)] hover:bg-[#2D5E3A] transition-all cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4 fill-white" />
-                  Explore Our Menu
-                </motion.button>
-              </div>
+              {/* Tagline */}
+              {config.welcomeMessage && (
+                <p className="font-sans italic text-white/55 text-base text-center max-w-sm font-light">
+                  "{config.welcomeMessage}"
+                </p>
+              )}
+
+              {/* CTA */}
+              <motion.button
+                id="welcome-explore-btn"
+                onClick={() => setScreen('category')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                className="w-72 h-14 rounded-lg bg-[#A83A35] text-white font-display font-semibold uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(168,58,53,0.35)] hover:bg-[#2D5E3A] transition-all cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 fill-white" />
+                Explore Our Menu
+              </motion.button>
             </motion.div>
           )}
 
@@ -249,10 +248,10 @@ export default function CustomerApp({
                   className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
                   <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.starters}')` }} />
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.starters}')` }} />
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Starters & Nibbles</h3>
-                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Olives · Garlic Bread · Bruschetta · Mains</p>
+                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Starters & Nibbles</h3>
+                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Olives · Garlic Bread · Bruschetta · Mains</p>
                   </div>
                   <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
@@ -267,10 +266,10 @@ export default function CustomerApp({
                   className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
                   <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.mains}')` }} />
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.mains}')` }} />
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Mains</h3>
-                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Lamb Shank · Seabass · Chicken · Short Rib</p>
+                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Mains</h3>
+                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Lamb Shank · Seabass · Chicken · Short Rib</p>
                   </div>
                   <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
@@ -285,10 +284,10 @@ export default function CustomerApp({
                   className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
                   <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.pasta}')` }} />
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.pasta}')` }} />
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Pasta & Risotto</h3>
-                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Carbonara · Linguine · Lasagne · Risotto</p>
+                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Pasta & Risotto</h3>
+                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Carbonara · Linguine · Lasagne · Risotto</p>
                   </div>
                   <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
@@ -303,10 +302,10 @@ export default function CustomerApp({
                   className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
                   <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.pizza}')` }} />
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.pizza}')` }} />
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Pizza</h3>
-                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Stone-baked · Build Your Own · 9 Varieties</p>
+                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Pizza</h3>
+                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Stone-baked · Build Your Own · 9 Varieties</p>
                   </div>
                   <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
@@ -321,10 +320,10 @@ export default function CustomerApp({
                   className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
                   <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.desserts}')` }} />
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.desserts}')` }} />
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Desserts</h3>
-                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Eton Mess · Cheesecake · Brownie · Ice Cream</p>
+                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Desserts</h3>
+                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Eton Mess · Cheesecake · Brownie · Ice Cream</p>
                   </div>
                   <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
@@ -339,10 +338,10 @@ export default function CustomerApp({
                   className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
                 >
                   <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.72)), url('${CATEGORY_FALLBACK_IMAGES.drinks}')` }} />
+                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.drinks}')` }} />
                   <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-xl text-white font-medium tracking-wide">Drinks</h3>
-                    <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Cocktails · Wine · Beer · Soft Drinks</p>
+                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Drinks</h3>
+                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Cocktails · Wine · Beer · Soft Drinks</p>
                   </div>
                   <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
