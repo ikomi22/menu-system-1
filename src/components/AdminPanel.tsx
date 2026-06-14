@@ -33,12 +33,12 @@ import CustomerApp from './CustomerApp';
 
 // Presets Chef Gallery of food URLs so users can easily select gorgeous pictures
 const CHEF_PRESET_IMAGES = [
-  { name: 'Tomahawk Ribeye', url: 'https://images.unsplash.com/photo-1544025162-d76694265947?w=800&auto=format&fit=crop&q=80' },
-  { name: 'Fresh Salmon', url: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&auto=format&fit=crop&q=80' },
-  { name: 'Lobster Pasta', url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&auto=format&fit=crop&q=80' },
-  { name: 'Classic Burger', url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&auto=format&fit=crop&q=80' },
-  { name: 'Negroni Sbagliato', url: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&auto=format&fit=crop&q=80' },
-  { name: 'Warm Lava Souffle', url: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&auto=format&fit=crop&q=80' }
+  { name: 'Lamb Shank', url: '/arco/unnamed-3.jpg' },
+  { name: 'Seafood Linguine', url: '/arco/unnamed-2.jpg' },
+  { name: 'Lasagne', url: '/arco/unnamed-12.jpg' },
+  { name: 'Mussels', url: '/arco/unnamed-11.jpg' },
+  { name: 'Pea Risotto', url: '/arco/unnamed-8.jpg' },
+  { name: 'Calamari', url: '/arco/unnamed-7.jpg' },
 ];
 
 interface AdminPanelProps {
@@ -66,8 +66,8 @@ export default function AdminPanel({
 }: AdminPanelProps) {
   // Auth flow state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [email, setEmail] = useState('admin@letoile.com');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('admin@arco.com');
+  const [password, setPassword] = useState('arco2024');
   const [authError, setAuthError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
@@ -83,13 +83,18 @@ export default function AdminPanel({
 
   // Form Fields State
   const [formName, setFormName] = useState('');
-  const [formCategory, setFormCategory] = useState<Category>('food');
+  const [formCategory, setFormCategory] = useState<Category>('starters');
   const [formPriceStr, setFormPriceStr] = useState(''); // E.g. "12.50"
   const [formDescription, setFormDescription] = useState('');
   const [formAllergens, setFormAllergens] = useState<string[]>([]);
   const [formImageUrl, setFormImageUrl] = useState('');
   const [formAvailable, setFormAvailable] = useState(true);
+  const [formVegetarian, setFormVegetarian] = useState(false);
+  const [formGlutenFree, setFormGlutenFree] = useState(false);
+  const [formPairedItemIds, setFormPairedItemIds] = useState<string[]>([]);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
+  const [descGenError, setDescGenError] = useState('');
   
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
@@ -103,24 +108,29 @@ export default function AdminPanel({
   // Handle manual login
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'admin@letoile.com' && password === 'admin123') {
+    if (email === 'admin@arco.com' && password === 'arco2024') {
       setIsAuthenticated(true);
       setAuthError('');
     } else {
-      setAuthError('Incorrect email or password. Use: admin@letoile.com / admin123');
+      setAuthError('Incorrect email or password. Use: admin@arco.com / arco2024');
     }
   };
 
   // Switch to adding screen
   const initAddForm = () => {
     setFormName('');
-    setFormCategory('food');
+    setFormCategory('starters');
     setFormPriceStr('');
     setFormDescription('');
     setFormAllergens([]);
     setFormImageUrl(CHEF_PRESET_IMAGES[2].url); // select standard lobster pasta as default
     setFormAvailable(true);
+    setFormVegetarian(false);
+    setFormGlutenFree(false);
+    setFormPairedItemIds([]);
     setFormErrors({});
+    setIsGeneratingDesc(false);
+    setDescGenError('');
     setEditingItemId(null);
     setActiveTab('add-item');
   };
@@ -134,7 +144,12 @@ export default function AdminPanel({
     setFormAllergens(item.allergens);
     setFormImageUrl(item.imageUrl);
     setFormAvailable(item.available);
+    setFormVegetarian(item.isVegetarian ?? false);
+    setFormGlutenFree(item.isGlutenFree ?? false);
+    setFormPairedItemIds(item.pairedItemIds ?? []);
     setFormErrors({});
+    setIsGeneratingDesc(false);
+    setDescGenError('');
     setEditingItemId(item.id);
     setActiveTab('edit-item');
   };
@@ -175,6 +190,9 @@ export default function AdminPanel({
         allergens: formAllergens,
         imageUrl: formImageUrl,
         available: formAvailable,
+        isVegetarian: formVegetarian,
+        isGlutenFree: formGlutenFree,
+        pairedItemIds: formPairedItemIds,
       });
       setEditingItemId(null);
     } else {
@@ -187,6 +205,9 @@ export default function AdminPanel({
         allergens: formAllergens,
         imageUrl: formImageUrl,
         available: formAvailable,
+        isVegetarian: formVegetarian,
+        isGlutenFree: formGlutenFree,
+        pairedItemIds: formPairedItemIds,
       });
     }
 
@@ -201,6 +222,43 @@ export default function AdminPanel({
         ? prev.filter(a => a !== allergen) 
         : [...prev, allergen]
     );
+  };
+
+  // Pairing toggle — enforces max 2
+  const handleTogglePairing = (id: string) => {
+    setFormPairedItemIds(prev => {
+      if (prev.includes(id)) return prev.filter(p => p !== id);
+      if (prev.length >= 2) return prev;
+      return [...prev, id];
+    });
+  };
+
+  // AI description generation via Gemini
+  const handleGenerateDescription = async () => {
+    if (!formName.trim()) {
+      setDescGenError('Enter a dish name first before generating.');
+      return;
+    }
+    setIsGeneratingDesc(true);
+    setDescGenError('');
+    try {
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: `Write a luxurious, sensory restaurant menu description for "${formName}" (category: ${formCategory}). Maximum 180 characters. Output only the description text, no quotes or labels.`,
+      });
+      const text = response.text?.trim();
+      if (text) {
+        setFormDescription(text.slice(0, 180));
+      } else {
+        setDescGenError('No content returned. Try again.');
+      }
+    } catch {
+      setDescGenError('Generation failed. Check your API key or network.');
+    } finally {
+      setIsGeneratingDesc(false);
+    }
   };
 
   // Save Settings Panel changes
@@ -227,9 +285,12 @@ export default function AdminPanel({
   // Simple stats helper
   const countStats = {
     total: menuItems.length,
-    food: menuItems.filter(i => i.category === 'food').length,
-    drinks: menuItems.filter(i => i.category === 'drinks').length,
+    starters: menuItems.filter(i => i.category === 'starters').length,
+    mains: menuItems.filter(i => i.category === 'mains').length,
+    pasta: menuItems.filter(i => i.category === 'pasta').length,
+    pizza: menuItems.filter(i => i.category === 'pizza').length,
     desserts: menuItems.filter(i => i.category === 'desserts').length,
+    drinks: menuItems.filter(i => i.category === 'drinks').length,
     unavailable: menuItems.filter(i => !i.available).length
   };
 
@@ -238,8 +299,8 @@ export default function AdminPanel({
       <div id="admin-login-layout" className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-6 lg:px-8 font-sans">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-[#C9A84C] font-serif font-black text-xl shadow-md border border-[#C9A84C]/20">
-              LÉ
+            <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-[#A83A35] font-serif font-black text-xl shadow-md border border-[#A83A35]/20">
+              A
             </div>
             <h1 className="text-xl font-display font-black text-slate-800 tracking-wider uppercase">
               Visual Menu Service
@@ -267,8 +328,8 @@ export default function AdminPanel({
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C9A84C] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
-                    placeholder="manager@letoile.com"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#A83A35] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
+                    placeholder="admin@arco.com"
                   />
                 </div>
               </div>
@@ -284,7 +345,7 @@ export default function AdminPanel({
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#C9A84C] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#A83A35] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
                     placeholder="••••••••"
                   />
                   <button
@@ -310,7 +371,7 @@ export default function AdminPanel({
                     id="remember-me"
                     type="checkbox"
                     defaultChecked
-                    className="h-4 w-4 text-[#C9A84C] focus:ring-[#C9A84C] border-slate-300 rounded"
+                    className="h-4 w-4 text-[#A83A35] focus:ring-[#A83A35] border-slate-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-xs font-medium text-slate-500 select-none">
                     Persist administrator token
@@ -320,8 +381,8 @@ export default function AdminPanel({
                 <div className="text-xs">
                   <button
                     type="button"
-                    onClick={() => alert(`Reset email template simulated! Creds preset: admin@letoile.com / admin123`)}
-                    className="font-medium text-[#C9A84C] hover:text-amber-600 cursor-pointer"
+                    onClick={() => alert(`Reset email template simulated! Creds preset: admin@arco.com / arco2024`)}
+                    className="font-medium text-[#A83A35] hover:text-amber-600 cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -332,7 +393,7 @@ export default function AdminPanel({
                 <button
                   id="login-submit-btn"
                   type="submit"
-                  className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold tracking-wide text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#C9A84C] transition-all cursor-pointer"
+                  className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold tracking-wide text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A83A35] transition-all cursor-pointer"
                 >
                   Sign In
                 </button>
@@ -346,12 +407,12 @@ export default function AdminPanel({
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('admin@letoile.com');
-                  setPassword('admin123');
+                  setEmail('admin@arco.com');
+                  setPassword('arco2024');
                 }}
-                className="w-full py-2 bg-slate-50 border border-slate-100 hover:border-[#C9A84C]/30 text-xs font-medium text-slate-600 rounded-xl flex items-center justify-center gap-1 cursor-pointer hover:bg-white transiton-all"
+                className="w-full py-2 bg-slate-50 border border-slate-100 hover:border-[#A83A35]/30 text-xs font-medium text-slate-600 rounded-xl flex items-center justify-center gap-1 cursor-pointer hover:bg-white transiton-all"
               >
-                <Key className="w-3 h-3 text-[#C9A84C]" />
+                <Key className="w-3 h-3 text-[#A83A35]" />
                 Auto-fill Admin Credentials
               </button>
             </div>
@@ -367,12 +428,12 @@ export default function AdminPanel({
       {/* Top Admin Header Bar */}
       <header className="bg-white border-b border-slate-100 shrink-0 select-none px-6 py-4 flex items-center justify-between shadow-xs relative z-30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-slate-900 text-[#C9A84C] font-serif font-black text-lg flex items-center justify-center border border-[#C9A84C]/10 shadow">
-            LÉ
+          <div className="w-9 h-9 rounded-lg bg-slate-900 text-[#A83A35] font-serif font-black text-lg flex items-center justify-center border border-[#A83A35]/10 shadow">
+            A
           </div>
           <div>
             <h2 className="font-display font-black text-sm tracking-wider uppercase text-slate-900 leading-none">
-              L'ÉTOILE ADMIN
+              ARCO ADMIN
             </h2>
             <span className="text-[10px] text-zinc-500 tracking-wide inline-block mt-0.5">
               Visual Menu System • Core Console
@@ -401,7 +462,7 @@ export default function AdminPanel({
           <div className="hidden md:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 font-sans text-xs text-slate-700">
             <span className="font-semibold text-slate-800">Admin Owner</span>
             <span className="text-[#a0a0a0]">•</span>
-            <span className="text-zinc-500 italic">L'Étoile Luxury Group</span>
+            <span className="text-zinc-500 italic">arco Coventry</span>
           </div>
 
           <button
@@ -431,11 +492,11 @@ export default function AdminPanel({
                 onClick={() => { setActiveTab('dashboard'); setEditingItemId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
                   activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item'
-                    ? 'bg-[#C9A84C]/10 text-slate-900 border-l-4 border-[#C9A84C]' 
+                    ? 'bg-[#A83A35]/10 text-slate-900 border-l-4 border-[#A83A35]' 
                     : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
                 }`}
               >
-                <LayoutDashboard className="w-4 h-4 shrink-0 text-[#C9A84C]" />
+                <LayoutDashboard className="w-4 h-4 shrink-0 text-[#A83A35]" />
                 <span>Menu Database</span>
               </button>
 
@@ -444,11 +505,11 @@ export default function AdminPanel({
                 onClick={() => { setActiveTab('preview'); setEditingItemId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
                   activeTab === 'preview'
-                    ? 'bg-[#C9A84C]/10 text-slate-900 border-l-4 border-[#C9A84C]' 
+                    ? 'bg-[#A83A35]/10 text-slate-900 border-l-4 border-[#A83A35]' 
                     : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
                 }`}
               >
-                <Tablet className="w-4 h-4 shrink-0 text-[#C9A84C]" />
+                <Tablet className="w-4 h-4 shrink-0 text-[#A83A35]" />
                 <span>Kiosk Live Preview</span>
               </button>
 
@@ -457,11 +518,11 @@ export default function AdminPanel({
                 onClick={() => { setActiveTab('settings'); setEditingItemId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
                   activeTab === 'settings'
-                    ? 'bg-[#C9A84C]/10 text-slate-900 border-l-4 border-[#C9A84C]' 
+                    ? 'bg-[#A83A35]/10 text-slate-900 border-l-4 border-[#A83A35]' 
                     : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
                 }`}
               >
-                <SettingsIcon className="w-4 h-4 shrink-0 text-[#C9A84C]" />
+                <SettingsIcon className="w-4 h-4 shrink-0 text-[#A83A35]" />
                 <span>Brand Settings</span>
               </button>
             </div>
@@ -477,7 +538,7 @@ export default function AdminPanel({
                   <span className="text-[9px] text-zinc-500 font-medium">Daily Browsing</span>
                 </div>
                 <div className="bg-white p-2.5 rounded-lg border border-slate-100">
-                  <span className="block text-lg font-bold font-display text-[#C9A84C]">+18%</span>
+                  <span className="block text-lg font-bold font-display text-[#A83A35]">+18%</span>
                   <span className="text-[9px] text-emerald-600 font-semibold">Upsell outcome</span>
                 </div>
               </div>
@@ -513,32 +574,32 @@ export default function AdminPanel({
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#C9A84C]/10 text-[#C9A84C] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-[#A83A35]/10 text-[#A83A35] flex items-center justify-center">
                     <Utensils className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Food Recipes</span>
-                    <span className="text-xs text-slate-400">{countStats.food} Active Plates</span>
+                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Starters</span>
+                    <span className="text-xs text-slate-400">{countStats.starters} Items</span>
                   </div>
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#C9A84C]/10 text-indigo-400 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-[#A83A35]/10 text-indigo-400 flex items-center justify-center">
                     <GlassWater className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Beverages</span>
-                    <span className="text-xs text-slate-400">{countStats.drinks} Infusions</span>
+                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Pasta & Risotto</span>
+                    <span className="text-xs text-slate-400">{countStats.pasta} Dishes</span>
                   </div>
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#C9A84C]/10 text-pink-400 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-[#A83A35]/10 text-pink-400 flex items-center justify-center">
                     <Cake className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Desserts</span>
-                    <span className="text-xs text-slate-400">{countStats.desserts} Sweets</span>
+                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Pizza</span>
+                    <span className="text-xs text-slate-400">{countStats.pizza} Varieties</span>
                   </div>
                 </div>
               </div>
@@ -548,7 +609,7 @@ export default function AdminPanel({
                 
                 {/* Tabs filter */}
                 <div className="flex gap-1.5 p-1 bg-slate-100 rounded-lg w-full md:w-auto self-start md:self-auto">
-                  {(['all', 'food', 'drinks', 'desserts'] as const).map(tab => (
+                  {(['all', 'starters', 'mains', 'pasta', 'pizza', 'desserts', 'drinks'] as const).map(tab => (
                     <button
                       key={tab}
                       id={`tab-filter-${tab}`}
@@ -574,14 +635,14 @@ export default function AdminPanel({
                       placeholder="Search recipes..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full text-xs font-sans rounded-lg pl-9 py-2.5 pr-4 border border-slate-200 focus:ring-1 focus:ring-[#C9A84C] focus:bg-white bg-slate-50 outline-none text-slate-800 transition-all font-light"
+                      className="w-full text-xs font-sans rounded-lg pl-9 py-2.5 pr-4 border border-slate-200 focus:ring-1 focus:ring-[#A83A35] focus:bg-white bg-slate-50 outline-none text-slate-800 transition-all font-light"
                     />
                   </div>
 
                   <button
                     id="add-new-item-btn"
                     onClick={initAddForm}
-                    className="bg-[#C9A84C] hover:bg-[#d6b75f] text-[#1A1A1A] text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-lg shadow-gold-500/10 cursor-pointer transition-all"
+                    className="bg-[#A83A35] hover:bg-[#2D5E3A] text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-lg shadow-[#A83A35]/10 cursor-pointer transition-all"
                   >
                     <Plus className="w-4 h-4" />
                     Add Recipe Item
@@ -592,7 +653,7 @@ export default function AdminPanel({
                     onClick={() => setActiveTab('preview')}
                     className="bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold uppercase tracking-wider px-3 py-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                   >
-                    <Tablet className="w-4 h-4 text-[#C9A84C]" />
+                    <Tablet className="w-4 h-4 text-[#A83A35]" />
                     Tablet View
                   </button>
                 </div>
@@ -655,18 +716,24 @@ export default function AdminPanel({
                             {/* Category badge */}
                             <td className="px-6 py-4 font-sans text-[10px] font-bold uppercase tracking-wider">
                               <span className={`px-2 py-0.5 rounded ${
-                                item.category === 'food' 
-                                  ? 'bg-amber-500/10 text-amber-700' 
-                                  : item.category === 'drinks' 
-                                    ? 'bg-indigo-500/10 text-indigo-700' 
-                                    : 'bg-pink-500/10 text-pink-700'
+                                item.category === 'starters'
+                                  ? 'bg-amber-500/10 text-amber-700'
+                                  : item.category === 'mains'
+                                    ? 'bg-orange-500/10 text-orange-700'
+                                    : item.category === 'pasta'
+                                      ? 'bg-yellow-500/10 text-yellow-700'
+                                      : item.category === 'pizza'
+                                        ? 'bg-red-500/10 text-red-700'
+                                        : item.category === 'drinks'
+                                          ? 'bg-indigo-500/10 text-indigo-700'
+                                          : 'bg-pink-500/10 text-pink-700'
                               }`}>
                                 {item.category}
                               </span>
                             </td>
 
                             {/* Price formatted */}
-                            <td className="px-[#C9A84C] font-display font-semibold text-slate-900 tracking-wide">
+                            <td className="px-[#A83A35] font-display font-semibold text-slate-900 tracking-wide">
                               £{(item.price / 100).toFixed(2)}
                             </td>
 
@@ -753,7 +820,7 @@ export default function AdminPanel({
                       required
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#C9A84C] transition-all ${
+                      className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all ${
                         formErrors.name ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                       }`}
                       placeholder="E.g. Roasted Rack of Lamb"
@@ -771,11 +838,14 @@ export default function AdminPanel({
                       id="form-item-category"
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value as Category)}
-                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#C9A84C] transition-all font-sans cursor-pointer"
+                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all font-sans cursor-pointer"
                     >
-                      <option value="food">Food Menu (Starters/Mains/Sides)</option>
-                      <option value="drinks">Drinks Menu (Beverages)</option>
-                      <option value="desserts">Dessert Menu (Puddings)</option>
+                      <option value="starters">Starters &amp; Nibbles</option>
+                      <option value="mains">Mains</option>
+                      <option value="pasta">Pasta &amp; Risotto</option>
+                      <option value="pizza">Pizza</option>
+                      <option value="desserts">Desserts</option>
+                      <option value="drinks">Drinks</option>
                     </select>
                   </div>
                 </div>
@@ -796,7 +866,7 @@ export default function AdminPanel({
                         required
                         value={formPriceStr}
                         onChange={(e) => setFormPriceStr(e.target.value)}
-                        className={`block w-full pl-8 pr-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#C9A84C] transition-all font-semibold ${
+                        className={`block w-full pl-8 pr-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all font-semibold ${
                           formErrors.price ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                         }`}
                         placeholder="14.50"
@@ -809,23 +879,47 @@ export default function AdminPanel({
                     )}
                   </div>
 
-                  {/* Availability */}
+                  {/* Availability + V/GF */}
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
                       Service Active Status
                     </label>
-                    <div className="mt-2.5 flex items-center">
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setFormAvailable(!formAvailable)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                          formAvailable 
-                            ? 'bg-emerald-500/10 border-emerald-200 text-emerald-800' 
+                          formAvailable
+                            ? 'bg-emerald-500/10 border-emerald-200 text-emerald-800'
                             : 'bg-rose-500/10 border-rose-200 text-rose-800'
                         }`}
                       >
                         <span className={`w-2 h-2 rounded-full ${formAvailable ? 'bg-emerald-500' : 'bg-rose-500'}`} />
                         <span>{formAvailable ? 'Available on next Sync' : 'Hides instantly from Tables'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormVegetarian(!formVegetarian)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                          formVegetarian
+                            ? 'bg-green-500/10 border-green-300 text-green-800'
+                            : 'bg-slate-50 border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        <span className="font-bold">V</span>
+                        <span>{formVegetarian ? 'Vegetarian' : 'Not Vegetarian'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormGlutenFree(!formGlutenFree)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                          formGlutenFree
+                            ? 'bg-blue-500/10 border-blue-300 text-blue-800'
+                            : 'bg-slate-50 border-slate-200 text-slate-500'
+                        }`}
+                      >
+                        <span className="font-bold">GF</span>
+                        <span>{formGlutenFree ? 'Gluten Free' : 'Contains Gluten'}</span>
                       </button>
                     </div>
                   </div>
@@ -837,22 +931,51 @@ export default function AdminPanel({
                     <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Recipe Description (Max 200 characters)
                     </label>
-                    <span className={`text-[10px] font-mono ${formDescription.length > 200 ? 'text-red-500 font-bold' : 'text-[#a0a0a0]'}`}>
-                      {formDescription.length} / 200
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleGenerateDescription}
+                        disabled={isGeneratingDesc || !formName.trim()}
+                        className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                          isGeneratingDesc || !formName.trim()
+                            ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
+                            : 'bg-[#A83A35]/10 border-[#A83A35]/40 text-[#A83A35] hover:bg-[#A83A35]/20 hover:border-[#A83A35]'
+                        }`}
+                      >
+                        {isGeneratingDesc ? (
+                          <>
+                            <span className="w-3 h-3 border-2 border-[#A83A35]/30 border-t-[#A83A35] rounded-full animate-spin inline-block" />
+                            <span>Generating...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3 h-3" />
+                            <span>Generate with AI</span>
+                          </>
+                        )}
+                      </button>
+                      <span className={`text-[10px] font-mono ${formDescription.length > 200 ? 'text-red-500 font-bold' : 'text-[#a0a0a0]'}`}>
+                        {formDescription.length} / 200
+                      </span>
+                    </div>
                   </div>
                   <textarea
                     id="form-item-desc"
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     rows={3}
-                    className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#C9A84C] transition-all leading-normal ${
+                    className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all leading-normal ${
                       formErrors.description ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                     }`}
                     placeholder="Provide a luxurious sensory description of preparation methods, seasoning, or cuts. Highly visual words trigger appetism. E.g. 'Dry-aged Prime cuts layered in wild herbs...'"
                   />
                   {formErrors.description && (
                     <span className="text-[10px] text-red-500 block mt-1 font-medium">{formErrors.description}</span>
+                  )}
+                  {descGenError && (
+                    <span className="text-[10px] text-amber-600 block mt-1 font-medium flex items-center gap-1">
+                      <AlertTriangle className="w-3 h-3 inline shrink-0" /> {descGenError}
+                    </span>
                   )}
                 </div>
 
@@ -870,7 +993,7 @@ export default function AdminPanel({
                         required
                         value={formImageUrl}
                         onChange={(e) => setFormImageUrl(e.target.value)}
-                        className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#C9A84C] transition-all ${
+                        className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all ${
                           formErrors.imageUrl ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                         }`}
                         placeholder="Paste Unsplash or static image URL here..."
@@ -882,7 +1005,7 @@ export default function AdminPanel({
 
                     {/* Quick Mock Crop helper box */}
                     <div className="h-11 px-4 border border-dashed border-slate-300 rounded-xl flex items-center justify-center gap-1.5 text-xs text-slate-500 bg-slate-50 text-center font-medium font-sans">
-                      <Upload className="w-4 h-4 text-[#C9A84C]" />
+                      <Upload className="w-4 h-4 text-[#A83A35]" />
                       <span className="hidden sm:inline">16:9 Interactive Autocrop Enabled</span>
                     </div>
                   </div>
@@ -890,7 +1013,7 @@ export default function AdminPanel({
                   {/* Curated quick-select Chef imagery library so demo user has a fast easy beautiful flow */}
                   <div className="bg-slate-50 border border-slate-100 p-3.5 rounded-xl">
                     <span className="text-[9px] font-black tracking-widest text-[#a0a0a0] uppercase block mb-2">
-                      Or Quick Select From Michelin-Quality Presets:
+                      Or Quick Select From Chef Selection Presets:
                     </span>
                     <div className="grid grid-cols-6 gap-2">
                       {CHEF_PRESET_IMAGES.map(preset => (
@@ -899,7 +1022,7 @@ export default function AdminPanel({
                           type="button"
                           onClick={() => setFormImageUrl(preset.url)}
                           className={`group aspect-16/9 rounded-lg overflow-hidden border-2 transition-all relative block shrink-0 ${
-                            formImageUrl === preset.url ? 'border-[#C9A84C] scale-95 shadow-md' : 'border-transparent opacity-65 hover:opacity-100'
+                            formImageUrl === preset.url ? 'border-[#A83A35] scale-95 shadow-md' : 'border-transparent opacity-65 hover:opacity-100'
                           }`}
                         >
                           <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -952,14 +1075,61 @@ export default function AdminPanel({
                           onClick={() => handleToggleAllergen(allergen)}
                           className={`py-2 px-2.5 rounded-xl border-2 text-[11px] font-bold text-center block transition-all cursor-pointer ${
                             isChecked 
-                              ? 'bg-amber-500/10 border-[#C9A84C] text-[#C9A84C] shadow-xs' 
-                              : 'bg-white border-slate-100 text-slate-500 hover:border-[#C9A84C]/35'
+                              ? 'bg-[#A83A35]/10 border-[#A83A35] text-[#A83A35] shadow-xs'
+                              : 'bg-white border-slate-100 text-slate-500 hover:border-[#A83A35]/35'
                           }`}
                         >
                           <div className="flex items-center justify-center gap-1">
-                            {isChecked && <Check className="w-3 h-3 text-[#C9A84C] shrink-0" />}
+                            {isChecked && <Check className="w-3 h-3 text-[#A83A35] shrink-0" />}
                             <span className="truncate">{allergen}</span>
                           </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Pairs Well With picker */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                      Pairs Well With (Max 2 Items)
+                    </span>
+                    <span className="text-[10px] font-mono text-[#a0a0a0]">
+                      {formPairedItemIds.length} / 2 selected
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-zinc-500 font-light leading-normal -mt-1">
+                    Select up to 2 items shown as upsell suggestions on the customer detail screen.
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto no-scrollbar pr-1">
+                    {menuItems.filter(item => item.id !== editingItemId).map(candidate => {
+                      const isSelected = formPairedItemIds.includes(candidate.id);
+                      const isDisabled = !isSelected && formPairedItemIds.length >= 2;
+                      return (
+                        <button
+                          key={candidate.id}
+                          type="button"
+                          disabled={isDisabled}
+                          onClick={() => handleTogglePairing(candidate.id)}
+                          className={`flex items-center gap-2 p-2 rounded-xl border-2 text-left transition-all ${
+                            isSelected
+                              ? 'bg-[#A83A35]/10 border-[#A83A35] text-slate-900 cursor-pointer'
+                              : isDisabled
+                                ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed opacity-50'
+                                : 'bg-white border-slate-100 text-slate-600 hover:border-[#A83A35]/35 cursor-pointer'
+                          }`}
+                        >
+                          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-slate-200">
+                            <img src={candidate.imageUrl} alt={candidate.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <span className="text-[10px] font-semibold line-clamp-1 block leading-tight">{candidate.name}</span>
+                            <span className={`text-[9px] font-mono ${isSelected ? 'text-[#A83A35]' : 'text-zinc-500'}`}>
+                              £{(candidate.price / 100).toFixed(2)}
+                            </span>
+                          </div>
+                          {isSelected && <Check className="w-3 h-3 text-[#A83A35] shrink-0" />}
                         </button>
                       );
                     })}
@@ -979,7 +1149,7 @@ export default function AdminPanel({
                     type="submit"
                     className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 font-display font-semibold uppercase tracking-wider text-white rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg shadow-zinc-900/10 transition-all"
                   >
-                    <Check className="w-4 h-4 text-[#C9A84C]" />
+                    <Check className="w-4 h-4 text-[#A83A35]" />
                     {editingItemId ? 'Update Recipe' : 'Save Recipe'}
                   </button>
                 </div>
@@ -992,7 +1162,7 @@ export default function AdminPanel({
             <div className="space-y-6">
               
               {/* Gold Top Banner info */}
-              <div className="bg-[#C9A84C] p-4 rounded-xl flex items-center justify-between shadow text-[#1A1A1A] gap-4 select-none">
+              <div className="bg-[#A83A35] p-4 rounded-xl flex items-center justify-between shadow text-white gap-4 select-none">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-[#1A1A1A]">
                     <Sparkles className="w-4 h-4 text-[#1A1A1A] fill-[#1A1A1A]" />
@@ -1065,8 +1235,8 @@ export default function AdminPanel({
                     required
                     value={configName}
                     onChange={(e) => setConfigName(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#C9A84C] transition-all font-serif font-semibold"
-                    placeholder="L'Étoile Dorée"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all font-serif font-semibold"
+                    placeholder="arco Bar &amp; Ristorante"
                   />
                 </div>
 
@@ -1081,7 +1251,7 @@ export default function AdminPanel({
                     required
                     value={configLogo}
                     onChange={(e) => setConfigLogo(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-zinc-600 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#C9A84C] transition-all"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-zinc-600 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all"
                   />
                   <div className="flex gap-4 items-center mt-3 p-2 bg-slate-50 border border-slate-100 rounded-xl">
                     <div className="w-12 h-12 rounded-full border border-slate-200 bg-white overflow-hidden p-1 flex items-center justify-center shadow-xs shrink-0">
@@ -1107,7 +1277,7 @@ export default function AdminPanel({
                     maxLength={60}
                     value={configWelcome}
                     onChange={(e) => setConfigWelcome(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#C9A84C] transition-all italic font-light font-serif"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all italic font-light font-serif"
                     placeholder="E.g. Indulge in culinary excellence."
                   />
                 </div>
@@ -1127,7 +1297,7 @@ export default function AdminPanel({
                     />
                     <div>
                       <span className="text-xs font-semibold text-slate-900 block tracking-wider font-mono">{configPrimary}</span>
-                      <span className="text-[10px] text-slate-400 font-sans block mt-0.5">Selected brand accent. Gold (#C9A84C) is the premium default.</span>
+                      <span className="text-[10px] text-slate-400 font-sans block mt-0.5">Selected brand accent. Brick red (#A83A35) is the Arco brand colour.</span>
                     </div>
                   </div>
                 </div>
@@ -1147,7 +1317,7 @@ export default function AdminPanel({
                     onClick={() => {
                       alert('Simulating password change link dispatch to active partner email account!');
                     }}
-                    className="text-xs font-medium text-[#C9A84C] hover:text-amber-600 underline cursor-pointer"
+                    className="text-xs font-medium text-[#A83A35] hover:text-amber-600 underline cursor-pointer"
                   >
                     Change Admin Password
                   </button>
@@ -1157,7 +1327,7 @@ export default function AdminPanel({
                     type="submit"
                     className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 font-display font-semibold uppercase tracking-wider text-white rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-all"
                   >
-                    <Check className="w-3.5 h-3.5 text-[#C9A84C]" />
+                    <Check className="w-3.5 h-3.5 text-[#A83A35]" />
                     Save Settings
                   </button>
                 </div>
