@@ -142,10 +142,10 @@ export default function App() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xs font-display font-medium tracking-widest text-[#A83A35] uppercase">
+              <h1 className="text-xs font-display font-medium tracking-widest text-[#2D5E3A] uppercase">
                 {config.name}
               </h1>
-              <span className="text-[9px] uppercase font-bold tracking-widest bg-[#A83A35]/10 border border-[#A83A35]/20 px-1.5 py-0.5 rounded text-[#A83A35] flex items-center gap-0.5">
+              <span className="text-[9px] uppercase font-bold tracking-widest bg-[#2D5E3A]/10 border border-[#2D5E3A]/20 px-1.5 py-0.5 rounded text-[#2D5E3A] flex items-center gap-0.5">
                 <Crown className="w-2.5 h-2.5" />
                 Visual Menu System
               </span>
@@ -163,7 +163,7 @@ export default function App() {
             onClick={() => setViewMode('customer')}
             className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 ${
               viewMode === 'customer'
-                ? 'bg-zinc-800 text-[#A83A35] shadow-md border border-white/5'
+                ? 'bg-zinc-800 text-[#2D5E3A] shadow-md border border-white/5'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -176,7 +176,7 @@ export default function App() {
             onClick={() => setViewMode('admin')}
             className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 cursor-pointer transition-all duration-300 ${
               viewMode === 'admin'
-                ? 'bg-zinc-800 text-[#A83A35] shadow-md border border-white/5'
+                ? 'bg-zinc-800 text-[#2D5E3A] shadow-md border border-white/5'
                 : 'text-neutral-400 hover:text-white'
             }`}
           >
@@ -268,7 +268,7 @@ export default function App() {
                     <span className="text-zinc-600">|</span>
                     <button
                       onClick={() => setIsFramed(false)}
-                      className="text-[#A83A35] hover:text-[#2D5E3A] font-semibold underline cursor-pointer"
+                      className="text-[#2D5E3A] hover:text-white font-semibold underline cursor-pointer"
                     >
                       Maximize to Full Device Screen
                     </button>
@@ -318,7 +318,7 @@ export default function App() {
         <span>arco Bar &amp; Ristorante — Visual Menu System © 2026</span>
         <div className="flex gap-4 items-center">
           <span className="text-neutral-600">|</span>
-          <span className="text-[#A83A35]/80 font-mono tracking-wider">
+          <span className="text-[#2D5E3A]/80 font-mono tracking-wider">
             All Real-Time Database State Localized & Synced
           </span>
         </div>

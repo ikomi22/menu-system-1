@@ -299,7 +299,7 @@ export default function AdminPanel({
       <div id="admin-login-layout" className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-6 lg:px-8 font-sans">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-[#A83A35] font-serif font-black text-xl shadow-md border border-[#A83A35]/20">
+            <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-[#2D5E3A] font-serif font-black text-xl shadow-md border border-[#2D5E3A]/20">
               A
             </div>
             <h1 className="text-xl font-display font-black text-slate-800 tracking-wider uppercase">
@@ -328,7 +328,7 @@ export default function AdminPanel({
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#A83A35] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2D5E3A] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
                     placeholder="admin@arco.com"
                   />
                 </div>
@@ -345,7 +345,7 @@ export default function AdminPanel({
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#A83A35] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2D5E3A] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
                     placeholder="••••••••"
                   />
                   <button
@@ -371,7 +371,7 @@ export default function AdminPanel({
                     id="remember-me"
                     type="checkbox"
                     defaultChecked
-                    className="h-4 w-4 text-[#A83A35] focus:ring-[#A83A35] border-slate-300 rounded"
+                    className="h-4 w-4 text-[#2D5E3A] focus:ring-[#2D5E3A] border-slate-300 rounded"
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-xs font-medium text-slate-500 select-none">
                     Persist administrator token
@@ -382,7 +382,7 @@ export default function AdminPanel({
                   <button
                     type="button"
                     onClick={() => alert(`Reset email template simulated! Creds preset: admin@arco.com / arco2024`)}
-                    className="font-medium text-[#A83A35] hover:text-amber-600 cursor-pointer"
+                    className="font-medium text-[#2D5E3A] hover:text-amber-600 cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -393,7 +393,7 @@ export default function AdminPanel({
                 <button
                   id="login-submit-btn"
                   type="submit"
-                  className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold tracking-wide text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A83A35] transition-all cursor-pointer"
+                  className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold tracking-wide text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2D5E3A] transition-all cursor-pointer"
                 >
                   Sign In
                 </button>
@@ -410,9 +410,9 @@ export default function AdminPanel({
                   setEmail('admin@arco.com');
                   setPassword('arco2024');
                 }}
-                className="w-full py-2 bg-slate-50 border border-slate-100 hover:border-[#A83A35]/30 text-xs font-medium text-slate-600 rounded-xl flex items-center justify-center gap-1 cursor-pointer hover:bg-white transiton-all"
+                className="w-full py-2 bg-slate-50 border border-slate-100 hover:border-[#2D5E3A]/30 text-xs font-medium text-slate-600 rounded-xl flex items-center justify-center gap-1 cursor-pointer hover:bg-white transiton-all"
               >
-                <Key className="w-3 h-3 text-[#A83A35]" />
+                <Key className="w-3 h-3 text-[#2D5E3A]" />
                 Auto-fill Admin Credentials
               </button>
             </div>
@@ -428,7 +428,7 @@ export default function AdminPanel({
       {/* Top Admin Header Bar */}
       <header className="bg-white border-b border-slate-100 shrink-0 select-none px-6 py-4 flex items-center justify-between shadow-xs relative z-30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-slate-900 text-[#A83A35] font-serif font-black text-lg flex items-center justify-center border border-[#A83A35]/10 shadow">
+          <div className="w-9 h-9 rounded-lg bg-slate-900 text-[#2D5E3A] font-serif font-black text-lg flex items-center justify-center border border-[#2D5E3A]/10 shadow">
             A
           </div>
           <div>
@@ -492,11 +492,11 @@ export default function AdminPanel({
                 onClick={() => { setActiveTab('dashboard'); setEditingItemId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
                   activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item'
-                    ? 'bg-[#A83A35]/10 text-slate-900 border-l-4 border-[#A83A35]' 
+                    ? 'bg-[#2D5E3A]/10 text-slate-900 border-l-4 border-[#2D5E3A]' 
                     : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
                 }`}
               >
-                <LayoutDashboard className="w-4 h-4 shrink-0 text-[#A83A35]" />
+                <LayoutDashboard className="w-4 h-4 shrink-0 text-[#2D5E3A]" />
                 <span>Menu Database</span>
               </button>
 
@@ -505,11 +505,11 @@ export default function AdminPanel({
                 onClick={() => { setActiveTab('preview'); setEditingItemId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
                   activeTab === 'preview'
-                    ? 'bg-[#A83A35]/10 text-slate-900 border-l-4 border-[#A83A35]' 
+                    ? 'bg-[#2D5E3A]/10 text-slate-900 border-l-4 border-[#2D5E3A]' 
                     : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
                 }`}
               >
-                <Tablet className="w-4 h-4 shrink-0 text-[#A83A35]" />
+                <Tablet className="w-4 h-4 shrink-0 text-[#2D5E3A]" />
                 <span>Kiosk Live Preview</span>
               </button>
 
@@ -518,11 +518,11 @@ export default function AdminPanel({
                 onClick={() => { setActiveTab('settings'); setEditingItemId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
                   activeTab === 'settings'
-                    ? 'bg-[#A83A35]/10 text-slate-900 border-l-4 border-[#A83A35]' 
+                    ? 'bg-[#2D5E3A]/10 text-slate-900 border-l-4 border-[#2D5E3A]' 
                     : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
                 }`}
               >
-                <SettingsIcon className="w-4 h-4 shrink-0 text-[#A83A35]" />
+                <SettingsIcon className="w-4 h-4 shrink-0 text-[#2D5E3A]" />
                 <span>Brand Settings</span>
               </button>
             </div>
@@ -538,7 +538,7 @@ export default function AdminPanel({
                   <span className="text-[9px] text-zinc-500 font-medium">Daily Browsing</span>
                 </div>
                 <div className="bg-white p-2.5 rounded-lg border border-slate-100">
-                  <span className="block text-lg font-bold font-display text-[#A83A35]">+18%</span>
+                  <span className="block text-lg font-bold font-display text-[#2D5E3A]">+18%</span>
                   <span className="text-[9px] text-emerald-600 font-semibold">Upsell outcome</span>
                 </div>
               </div>
@@ -547,7 +547,7 @@ export default function AdminPanel({
 
           <div className="px-4">
             <div className="p-3 bg-zinc-900 text-white rounded-xl text-center select-none border border-white/5 space-y-2">
-              <span className="text-[10px] font-semibold text-[#C04840] block tracking-wider">Kiosk State Hub</span>
+              <span className="text-[10px] font-semibold text-[#2D5E3A] block tracking-wider">Kiosk State Hub</span>
               <p className="text-[8px] text-[#a0a0a0] leading-normal font-light">
                 Real-time tablet fleet synchronization is live and fully active.
               </p>
@@ -574,7 +574,7 @@ export default function AdminPanel({
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#A83A35]/10 text-[#A83A35] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-[#2D5E3A]/10 text-[#2D5E3A] flex items-center justify-center">
                     <Utensils className="w-5 h-5" />
                   </div>
                   <div>
@@ -584,7 +584,7 @@ export default function AdminPanel({
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#A83A35]/10 text-indigo-400 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 text-indigo-400 flex items-center justify-center">
                     <GlassWater className="w-5 h-5" />
                   </div>
                   <div>
@@ -594,7 +594,7 @@ export default function AdminPanel({
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#A83A35]/10 text-pink-400 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 text-pink-400 flex items-center justify-center">
                     <Cake className="w-5 h-5" />
                   </div>
                   <div>
@@ -635,7 +635,7 @@ export default function AdminPanel({
                       placeholder="Search recipes..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full text-xs font-sans rounded-lg pl-9 py-2.5 pr-4 border border-slate-200 focus:ring-1 focus:ring-[#A83A35] focus:bg-white bg-slate-50 outline-none text-slate-800 transition-all font-light"
+                      className="w-full text-xs font-sans rounded-lg pl-9 py-2.5 pr-4 border border-slate-200 focus:ring-1 focus:ring-[#2D5E3A] focus:bg-white bg-slate-50 outline-none text-slate-800 transition-all font-light"
                     />
                   </div>
 
@@ -653,7 +653,7 @@ export default function AdminPanel({
                     onClick={() => setActiveTab('preview')}
                     className="bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-semibold uppercase tracking-wider px-3 py-2.5 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                   >
-                    <Tablet className="w-4 h-4 text-[#A83A35]" />
+                    <Tablet className="w-4 h-4 text-[#2D5E3A]" />
                     Tablet View
                   </button>
                 </div>
@@ -733,7 +733,7 @@ export default function AdminPanel({
                             </td>
 
                             {/* Price formatted */}
-                            <td className="px-[#A83A35] font-display font-semibold text-slate-900 tracking-wide">
+                            <td className="px-6 py-4 font-display font-semibold text-slate-900 tracking-wide">
                               £{(item.price / 100).toFixed(2)}
                             </td>
 
@@ -820,7 +820,7 @@ export default function AdminPanel({
                       required
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all ${
+                      className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all ${
                         formErrors.name ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                       }`}
                       placeholder="E.g. Roasted Rack of Lamb"
@@ -838,7 +838,7 @@ export default function AdminPanel({
                       id="form-item-category"
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value as Category)}
-                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all font-sans cursor-pointer"
+                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all font-sans cursor-pointer"
                     >
                       <option value="starters">Starters &amp; Nibbles</option>
                       <option value="mains">Mains</option>
@@ -866,7 +866,7 @@ export default function AdminPanel({
                         required
                         value={formPriceStr}
                         onChange={(e) => setFormPriceStr(e.target.value)}
-                        className={`block w-full pl-8 pr-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all font-semibold ${
+                        className={`block w-full pl-8 pr-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all font-semibold ${
                           formErrors.price ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                         }`}
                         placeholder="14.50"
@@ -939,12 +939,12 @@ export default function AdminPanel({
                         className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
                           isGeneratingDesc || !formName.trim()
                             ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
-                            : 'bg-[#A83A35]/10 border-[#A83A35]/40 text-[#A83A35] hover:bg-[#A83A35]/20 hover:border-[#A83A35]'
+                            : 'bg-[#2D5E3A]/10 border-[#2D5E3A]/40 text-[#2D5E3A] hover:bg-[#2D5E3A]/20 hover:border-[#2D5E3A]'
                         }`}
                       >
                         {isGeneratingDesc ? (
                           <>
-                            <span className="w-3 h-3 border-2 border-[#A83A35]/30 border-t-[#A83A35] rounded-full animate-spin inline-block" />
+                            <span className="w-3 h-3 border-2 border-[#2D5E3A]/30 border-t-[#2D5E3A] rounded-full animate-spin inline-block" />
                             <span>Generating...</span>
                           </>
                         ) : (
@@ -964,7 +964,7 @@ export default function AdminPanel({
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     rows={3}
-                    className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all leading-normal ${
+                    className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all leading-normal ${
                       formErrors.description ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                     }`}
                     placeholder="Provide a luxurious sensory description of preparation methods, seasoning, or cuts. Highly visual words trigger appetism. E.g. 'Dry-aged Prime cuts layered in wild herbs...'"
@@ -993,7 +993,7 @@ export default function AdminPanel({
                         required
                         value={formImageUrl}
                         onChange={(e) => setFormImageUrl(e.target.value)}
-                        className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all ${
+                        className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all ${
                           formErrors.imageUrl ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                         }`}
                         placeholder="Paste Unsplash or static image URL here..."
@@ -1005,7 +1005,7 @@ export default function AdminPanel({
 
                     {/* Quick Mock Crop helper box */}
                     <div className="h-11 px-4 border border-dashed border-slate-300 rounded-xl flex items-center justify-center gap-1.5 text-xs text-slate-500 bg-slate-50 text-center font-medium font-sans">
-                      <Upload className="w-4 h-4 text-[#A83A35]" />
+                      <Upload className="w-4 h-4 text-[#2D5E3A]" />
                       <span className="hidden sm:inline">16:9 Interactive Autocrop Enabled</span>
                     </div>
                   </div>
@@ -1022,7 +1022,7 @@ export default function AdminPanel({
                           type="button"
                           onClick={() => setFormImageUrl(preset.url)}
                           className={`group aspect-16/9 rounded-lg overflow-hidden border-2 transition-all relative block shrink-0 ${
-                            formImageUrl === preset.url ? 'border-[#A83A35] scale-95 shadow-md' : 'border-transparent opacity-65 hover:opacity-100'
+                            formImageUrl === preset.url ? 'border-[#2D5E3A] scale-95 shadow-md' : 'border-transparent opacity-65 hover:opacity-100'
                           }`}
                         >
                           <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
@@ -1075,12 +1075,12 @@ export default function AdminPanel({
                           onClick={() => handleToggleAllergen(allergen)}
                           className={`py-2 px-2.5 rounded-xl border-2 text-[11px] font-bold text-center block transition-all cursor-pointer ${
                             isChecked 
-                              ? 'bg-[#A83A35]/10 border-[#A83A35] text-[#A83A35] shadow-xs'
-                              : 'bg-white border-slate-100 text-slate-500 hover:border-[#A83A35]/35'
+                              ? 'bg-[#2D5E3A]/10 border-[#2D5E3A] text-[#2D5E3A] shadow-xs'
+                              : 'bg-white border-slate-100 text-slate-500 hover:border-[#2D5E3A]/35'
                           }`}
                         >
                           <div className="flex items-center justify-center gap-1">
-                            {isChecked && <Check className="w-3 h-3 text-[#A83A35] shrink-0" />}
+                            {isChecked && <Check className="w-3 h-3 text-[#2D5E3A] shrink-0" />}
                             <span className="truncate">{allergen}</span>
                           </div>
                         </button>
@@ -1114,10 +1114,10 @@ export default function AdminPanel({
                           onClick={() => handleTogglePairing(candidate.id)}
                           className={`flex items-center gap-2 p-2 rounded-xl border-2 text-left transition-all ${
                             isSelected
-                              ? 'bg-[#A83A35]/10 border-[#A83A35] text-slate-900 cursor-pointer'
+                              ? 'bg-[#2D5E3A]/10 border-[#2D5E3A] text-slate-900 cursor-pointer'
                               : isDisabled
                                 ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed opacity-50'
-                                : 'bg-white border-slate-100 text-slate-600 hover:border-[#A83A35]/35 cursor-pointer'
+                                : 'bg-white border-slate-100 text-slate-600 hover:border-[#2D5E3A]/35 cursor-pointer'
                           }`}
                         >
                           <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-slate-200">
@@ -1125,11 +1125,11 @@ export default function AdminPanel({
                           </div>
                           <div className="min-w-0 flex-1">
                             <span className="text-[10px] font-semibold line-clamp-1 block leading-tight">{candidate.name}</span>
-                            <span className={`text-[9px] font-mono ${isSelected ? 'text-[#A83A35]' : 'text-zinc-500'}`}>
+                            <span className={`text-[9px] font-mono ${isSelected ? 'text-[#2D5E3A]' : 'text-zinc-500'}`}>
                               £{(candidate.price / 100).toFixed(2)}
                             </span>
                           </div>
-                          {isSelected && <Check className="w-3 h-3 text-[#A83A35] shrink-0" />}
+                          {isSelected && <Check className="w-3 h-3 text-[#2D5E3A] shrink-0" />}
                         </button>
                       );
                     })}
@@ -1149,7 +1149,7 @@ export default function AdminPanel({
                     type="submit"
                     className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 font-display font-semibold uppercase tracking-wider text-white rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg shadow-zinc-900/10 transition-all"
                   >
-                    <Check className="w-4 h-4 text-[#A83A35]" />
+                    <Check className="w-4 h-4 text-[#2D5E3A]" />
                     {editingItemId ? 'Update Recipe' : 'Save Recipe'}
                   </button>
                 </div>
@@ -1235,7 +1235,7 @@ export default function AdminPanel({
                     required
                     value={configName}
                     onChange={(e) => setConfigName(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all font-serif font-semibold"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all font-serif font-semibold"
                     placeholder="arco Bar &amp; Ristorante"
                   />
                 </div>
@@ -1251,7 +1251,7 @@ export default function AdminPanel({
                     required
                     value={configLogo}
                     onChange={(e) => setConfigLogo(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-zinc-600 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-zinc-600 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all"
                   />
                   <div className="flex gap-4 items-center mt-3 p-2 bg-slate-50 border border-slate-100 rounded-xl">
                     <div className="w-12 h-12 rounded-full border border-slate-200 bg-white overflow-hidden p-1 flex items-center justify-center shadow-xs shrink-0">
@@ -1277,7 +1277,7 @@ export default function AdminPanel({
                     maxLength={60}
                     value={configWelcome}
                     onChange={(e) => setConfigWelcome(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#A83A35] transition-all italic font-light font-serif"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all italic font-light font-serif"
                     placeholder="E.g. Indulge in culinary excellence."
                   />
                 </div>
@@ -1317,7 +1317,7 @@ export default function AdminPanel({
                     onClick={() => {
                       alert('Simulating password change link dispatch to active partner email account!');
                     }}
-                    className="text-xs font-medium text-[#A83A35] hover:text-amber-600 underline cursor-pointer"
+                    className="text-xs font-medium text-[#2D5E3A] hover:text-amber-600 underline cursor-pointer"
                   >
                     Change Admin Password
                   </button>
@@ -1327,7 +1327,7 @@ export default function AdminPanel({
                     type="submit"
                     className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 font-display font-semibold uppercase tracking-wider text-white rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-all"
                   >
-                    <Check className="w-3.5 h-3.5 text-[#A83A35]" />
+                    <Check className="w-3.5 h-3.5 text-[#2D5E3A]" />
                     Save Settings
                   </button>
                 </div>

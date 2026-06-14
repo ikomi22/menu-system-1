@@ -14,7 +14,9 @@ import {
   Flame,
   Check,
   WifiOff,
-  ShieldAlert
+  ShieldAlert,
+  Maximize2,
+  X
 } from 'lucide-react';
 import { MenuItem, RestaurantConfig, Category, OFFICIAL_ALLERGENS } from '../types';
 import { CATEGORY_FALLBACK_IMAGES } from '../data';
@@ -39,6 +41,7 @@ export default function CustomerApp({
   const [screen, setScreen] = useState<CustomerScreen>('welcome');
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   // Inactivity tracking
   const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,6 +60,7 @@ export default function CustomerApp({
       setScreen('welcome');
       setSelectedCategory(null);
       setSelectedItem(null);
+      setLightboxOpen(false);
     }, 180000);
   };
 
@@ -92,7 +96,15 @@ export default function CustomerApp({
   const selectItemDetail = (item: MenuItem) => {
     setSelectedItem(item);
     setScreen('detail');
+    setLightboxOpen(false);
   };
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxOpen]);
 
   const formatPrice = (pence: number) => {
     return `£${(pence / 100).toFixed(2)}`;
@@ -125,7 +137,7 @@ export default function CustomerApp({
       {/* SCREEN 6 - Offline Banner (Thin non-intrusive strip) */}
       {isOffline && (
         <div id="offline-banner" className="h-7 bg-[#2c2c2c] border-b border-yellow-600/20 flex items-center justify-center gap-2 px-4 shadow-[0_2px_10px_rgba(0,0,0,0.5)] z-50 shrink-0">
-          <WifiOff className="w-3.5 h-3.5 text-[#C04840]" />
+          <WifiOff className="w-3.5 h-3.5 text-amber-400" />
           <span className="font-sans text-[#a0a0a0] text-[11px] tracking-wide font-medium">
             Menu loaded locally • Last updated {new Date(config.lastUpdated).toLocaleDateString()} at {new Date(config.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
@@ -137,7 +149,7 @@ export default function CustomerApp({
         <button 
           id="exit-kiosk-btn"
           onClick={onExitKiosk}
-          className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-[#a0a0a0] text-xs px-3 py-1.5 rounded-full border border-white/10 hover:border-[#A83A35]/50 hover:text-white transition-all z-50 shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
+          className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md text-[#a0a0a0] text-xs px-3 py-1.5 rounded-full border border-white/10 hover:border-[#2D5E3A]/50 hover:text-white transition-all z-50 shadow-[0_4px_12px_rgba(0,0,0,0.4)]"
         >
           Exit Kiosk Mode
         </button>
@@ -163,11 +175,11 @@ export default function CustomerApp({
             >
               <div className="flex flex-col items-center mt-12">
                 {/* Logo Frame */}
-                <div className="w-20 h-20 rounded-full border-2 border-[#A83A35] p-1.5 flex items-center justify-center bg-black/40 shadow-xl overflow-hidden mb-6">
+                <div className="w-20 h-20 rounded-full border-2 border-[#2D5E3A] p-1.5 flex items-center justify-center bg-black/40 shadow-xl overflow-hidden mb-6">
                   {config.logo ? (
                     <img src={config.logo} alt="Restaurant Logo" referrerPolicy="no-referrer" className="w-full h-full object-cover rounded-full" />
                   ) : (
-                    <span className="text-xl font-serif text-[#A83A35] font-semibold">{config.name.substring(0, 1)}</span>
+                    <span className="text-xl font-serif text-[#2D5E3A] font-semibold">{config.name.substring(0, 1)}</span>
                   )}
                 </div>
 
@@ -217,10 +229,10 @@ export default function CustomerApp({
                     onClick={() => setScreen('welcome')}
                     className="group flex items-center gap-2 text-[#a0a0a0] hover:text-white transition-colors cursor-pointer"
                   >
-                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#A83A35]" />
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#2D5E3A]" />
                     <span className="font-sans text-xs tracking-wider uppercase font-medium">Welcome</span>
                   </button>
-                  <span className="font-sans tracking-widest text-[#A83A35] text-[10px] uppercase font-semibold">
+                  <span className="font-sans tracking-widest text-[#2D5E3A] text-[10px] uppercase font-semibold">
                     {config.name}
                   </span>
                   <div className="w-20" /> {/* Spacer */}
@@ -242,7 +254,7 @@ export default function CustomerApp({
                     <h3 className="font-serif text-xl text-white font-medium tracking-wide">Starters & Nibbles</h3>
                     <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Olives · Garlic Bread · Bruschetta · Mains</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
@@ -260,7 +272,7 @@ export default function CustomerApp({
                     <h3 className="font-serif text-xl text-white font-medium tracking-wide">Mains</h3>
                     <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Lamb Shank · Seabass · Chicken · Short Rib</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
@@ -278,7 +290,7 @@ export default function CustomerApp({
                     <h3 className="font-serif text-xl text-white font-medium tracking-wide">Pasta & Risotto</h3>
                     <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Carbonara · Linguine · Lasagne · Risotto</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
@@ -296,7 +308,7 @@ export default function CustomerApp({
                     <h3 className="font-serif text-xl text-white font-medium tracking-wide">Pizza</h3>
                     <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Stone-baked · Build Your Own · 9 Varieties</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
@@ -314,7 +326,7 @@ export default function CustomerApp({
                     <h3 className="font-serif text-xl text-white font-medium tracking-wide">Desserts</h3>
                     <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Eton Mess · Cheesecake · Brownie · Ice Cream</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
@@ -332,7 +344,7 @@ export default function CustomerApp({
                     <h3 className="font-serif text-xl text-white font-medium tracking-wide">Drinks</h3>
                     <p className="font-sans text-[#a0a0a0] text-[10px] mt-1 font-light">Cocktails · Wine · Beer · Soft Drinks</p>
                   </div>
-                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#A83A35]/30 bg-black/40 text-[#A83A35] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
+                  <div className="absolute top-3 right-3 text-[10px] tracking-wider font-semibold border border-[#2D5E3A]/30 bg-black/40 text-[#2D5E3A] px-2.5 py-0.5 rounded-full uppercase group-hover:bg-[#2D5E3A] group-hover:text-white group-hover:border-transparent transition-all">
                     Select
                   </div>
                 </motion.button>
@@ -361,7 +373,7 @@ export default function CustomerApp({
                   }}
                   className="group flex items-center gap-2 text-[#a0a0a0] hover:text-white transition-colors cursor-pointer"
                 >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#A83A35]" />
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#2D5E3A]" />
                   <span className="font-sans text-xs tracking-wider uppercase font-medium">Categories</span>
                 </button>
                 <span className="font-serif italic font-semibold text-white capitalize text-lg tracking-wide">
@@ -376,7 +388,7 @@ export default function CustomerApp({
               <div className="flex-1 overflow-y-auto no-scrollbar pt-4 pb-12">
                 {filteredItems.length === 0 ? (
                   <div className="h-48 flex flex-col items-center justify-center p-8 text-center bg-[#2C2C2C] border border-white/5 rounded-xl">
-                    <HelpCircle className="w-8 h-8 text-[#A83A35]/40 mb-3 animate-pulse" />
+                    <HelpCircle className="w-8 h-8 text-[#2D5E3A]/40 mb-3 animate-pulse" />
                     <p className="font-serif italic text-white text-base">Nothing here yet</p>
                     <p className="font-sans text-[#a0a0a0] text-xs mt-1 leading-relaxed">
                       Our kitchen is preparing dishes for this section. Check back in a moment.
@@ -407,7 +419,7 @@ export default function CustomerApp({
                           
                           {/* Allergen small indicator icons on cover overlay if present */}
                           {item.allergens.length > 0 && (
-                            <div className="absolute top-2 right-2 bg-black/60 border border-white/5 rounded px-1.5 py-0.5 text-[8px] tracking-widest text-[#C04840] font-semibold uppercase">
+                            <div className="absolute top-2 right-2 bg-black/60 border border-white/5 rounded px-1.5 py-0.5 text-[8px] tracking-widest text-amber-400 font-semibold uppercase">
                               Contains Allergens
                             </div>
                           )}
@@ -425,10 +437,10 @@ export default function CustomerApp({
 
                         {/* Dish title/price body */}
                         <div className="p-4 flex-1 flex flex-col justify-between gap-2.5">
-                          <h4 className="font-sans font-bold text-white text-sm line-clamp-1 group-hover:text-[#A83A35] transition-colors leading-snug">
+                          <h4 className="font-sans font-bold text-white text-sm line-clamp-1 group-hover:text-[#2D5E3A] transition-colors leading-snug">
                             {item.name}
                           </h4>
-                          <span className="font-display font-medium text-[#A83A35] text-[13px] tracking-wide block">
+                          <span className="font-display font-medium text-[#2D5E3A] text-[13px] tracking-wide block">
                             {formatPrice(item.price)}
                           </span>
                         </div>
@@ -452,7 +464,10 @@ export default function CustomerApp({
             >
               {/* Image Banner Top Cover */}
               <div className="h-[40%] min-h-[220px] w-full relative select-none shrink-0">
-                <div className="w-full h-full relative">
+                <div
+                  className="w-full h-full relative cursor-zoom-in group/img"
+                  onClick={() => setLightboxOpen(true)}
+                >
                   <img
                     src={selectedItem.imageUrl}
                     alt={selectedItem.name}
@@ -461,6 +476,10 @@ export default function CustomerApp({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-black/30" />
                   <FoodAnimation category={selectedItem.category} variant="hero" />
+                  {/* Expand hint */}
+                  <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/50 border border-white/20 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity pointer-events-none">
+                    <Maximize2 className="w-3.5 h-3.5 text-white" />
+                  </div>
                 </div>
 
                 {/* Overlaid Elegant Back Button */}
@@ -469,8 +488,9 @@ export default function CustomerApp({
                   onClick={() => {
                     setSelectedItem(null);
                     setScreen('browse');
+                    setLightboxOpen(false);
                   }}
-                  className="absolute top-4 left-4 h-9 w-9 rounded-full bg-black/65 border border-white/10 flex items-center justify-center text-white hover:bg-black hover:border-[#A83A35]/40 transition-all select-none cursor-pointer scale-100 font-sans shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                  className="absolute top-4 left-4 h-9 w-9 rounded-full bg-black/65 border border-white/10 flex items-center justify-center text-white hover:bg-black hover:border-[#2D5E3A]/40 transition-all select-none cursor-pointer scale-100 font-sans shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
                 >
                   <ArrowLeft className="w-4 h-4 text-white" />
                 </button>
@@ -483,7 +503,7 @@ export default function CustomerApp({
                     {selectedItem.name}
                   </h2>
                   <div className="mt-3 flex items-center gap-3">
-                    <span className="font-display font-bold text-xl text-[#A83A35]">
+                    <span className="font-display font-bold text-xl text-[#2D5E3A]">
                       {formatPrice(selectedItem.price)}
                     </span>
                     {selectedItem.isVegetarian && (
@@ -534,7 +554,7 @@ export default function CustomerApp({
                               />
                             </div>
                             <div className="min-w-0">
-                              <span className="font-sans text-xs text-white font-semibold line-clamp-1 group-hover:text-[#A83A35] transition-colors block">
+                              <span className="font-sans text-xs text-white font-semibold line-clamp-1 group-hover:text-[#2D5E3A] transition-colors block">
                                 {paired.name}
                               </span>
                               <span className="font-display text-[#3A7A4C] text-xs font-medium block mt-0.5">
@@ -585,11 +605,48 @@ export default function CustomerApp({
                   </p>
                 </div>
               </div>
+
             </motion.div>
           )}
 
         </AnimatePresence>
       </div>
+
+      {/* Full-screen image lightbox — must live outside all motion.divs so position:fixed
+          is not trapped by a Framer Motion transform containing block */}
+      <AnimatePresence>
+        {lightboxOpen && selectedItem && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center cursor-zoom-out"
+            onClick={() => setLightboxOpen(false)}
+          >
+            <motion.img
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+              src={selectedItem.imageUrl}
+              alt={selectedItem.name}
+              referrerPolicy="no-referrer"
+              className="max-w-[100vw] max-h-[100vh] object-contain select-none"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              onClick={() => setLightboxOpen(false)}
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/60 border border-white/20 flex items-center justify-center text-white hover:bg-black/80 transition-all cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="absolute bottom-6 left-0 right-0 text-center pointer-events-none">
+              <span className="font-serif text-white/70 text-base tracking-wide">{selectedItem.name}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

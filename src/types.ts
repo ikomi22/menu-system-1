@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type Category = 'food' | 'drinks' | 'desserts';
+export type Category = 'starters' | 'mains' | 'pasta' | 'pizza' | 'desserts' | 'drinks';
 
 export interface MenuItem {
   id: string;
@@ -13,7 +13,10 @@ export interface MenuItem {
   category: Category;
   imageUrl: string;
   allergens: string[]; // List of official UK allergens
+  isVegetarian?: boolean;
+  isGlutenFree?: boolean;
   available: boolean;
+  pairedItemIds?: string[];
   createdAt: number;
   updatedAt: number;
 }
