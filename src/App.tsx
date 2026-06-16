@@ -103,7 +103,7 @@ export default function App() {
   // Admin mode
   return (
     <div className="min-h-screen bg-[#1C1B19] text-slate-100 font-sans flex flex-col">
-      <header className="bg-[#121212]/90 backdrop-blur-md border-b border-white/5 px-6 py-3.5 flex items-center justify-between gap-4 select-none z-50 shrink-0">
+      <header className="hidden md:flex bg-[#121212]/90 backdrop-blur-md border-b border-white/5 px-6 py-3.5 items-center justify-between gap-4 select-none z-50 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#A83A35] to-[#C04840] text-white font-serif font-black flex items-center justify-center text-sm shadow-lg shadow-[#A83A35]/10">
             A

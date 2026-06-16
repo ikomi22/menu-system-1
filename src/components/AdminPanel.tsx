@@ -450,13 +450,13 @@ export default function AdminPanel({
             id="admin-sim-offline-toggle"
             onClick={onToggleOffline}
             className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border tracking-wide font-medium cursor-pointer transition-all ${
-              isOffline 
-                ? 'bg-amber-500/10 border-amber-300 text-amber-700 hover:bg-amber-500/15' 
+              isOffline
+                ? 'bg-amber-500/10 border-amber-300 text-amber-700 hover:bg-amber-500/15'
                 : 'bg-emerald-500/5 hover:bg-emerald-500/10 border-emerald-200 text-emerald-800'
             }`}
           >
             <div className={`w-2 h-2 rounded-full ${isOffline ? 'bg-amber-600 animate-pulse' : 'bg-emerald-500'}`} />
-            <span>Kiosk App: {isOffline ? 'SIMULATE OFFLINE' : 'SIMULATE ONLINE'}</span>
+            <span>Menu App {isOffline ? 'Offline' : 'Online'}</span>
           </button>
 
           {/* User detail info */}
@@ -553,7 +553,7 @@ export default function AdminPanel({
         </aside>
 
         {/* Content Dynamic Center Panel */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50">
+        <main className="flex-1 overflow-y-auto p-6 md:p-8 pb-24 md:pb-8 bg-slate-50">
           
           {/* TAB 1: DASHBOARD TABLE */}
           {activeTab === 'dashboard' && (
@@ -605,21 +605,23 @@ export default function AdminPanel({
               <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
                 
                 {/* Tabs filter */}
-                <div className="flex gap-1.5 p-1 bg-slate-100 rounded-lg w-full md:w-auto self-start md:self-auto">
-                  {(['all', 'starters', 'mains', 'pasta', 'pizza', 'desserts', 'drinks'] as const).map(tab => (
-                    <button
-                      key={tab}
-                      id={`tab-filter-${tab}`}
-                      onClick={() => setCategoryFilter(tab)}
-                      className={`text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-md cursor-pointer transition-all ${
-                        categoryFilter === tab
-                          ? 'bg-white text-slate-900 shadow-xs border-b border-white/10'
-                          : 'text-slate-500 hover:text-slate-900'
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
+                <div className="w-full md:w-auto self-start md:self-auto">
+                  <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-lg">
+                    {(['all', 'starters', 'mains', 'pasta', 'pizza', 'desserts', 'drinks'] as const).map(tab => (
+                      <button
+                        key={tab}
+                        id={`tab-filter-${tab}`}
+                        onClick={() => setCategoryFilter(tab)}
+                        className={`text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap ${
+                          categoryFilter === tab
+                            ? 'bg-white text-slate-900 shadow-xs border-b border-white/10'
+                            : 'text-slate-500 hover:text-slate-900'
+                        }`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Right controls: search input and Create button */}
@@ -1280,6 +1282,37 @@ export default function AdminPanel({
 
         </main>
       </div>
+
+      {/* Mobile Bottom Tab Bar */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 flex z-30 shadow-lg">
+        <button
+          onClick={() => { setActiveTab('dashboard'); setEditingItemId(null); }}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+            activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item'
+              ? 'text-[#A83A35]'
+              : 'text-slate-400'
+          }`}
+        >
+          <LayoutDashboard className={`w-5 h-5 ${activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item' ? 'text-[#A83A35]' : 'text-slate-400'}`} />
+          Menu
+        </button>
+        <button
+          onClick={onLaunchKiosk}
+          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400"
+        >
+          <Tablet className="w-5 h-5" />
+          Launch
+        </button>
+        <button
+          onClick={() => { setActiveTab('settings'); setEditingItemId(null); }}
+          className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${
+            activeTab === 'settings' ? 'text-[#A83A35]' : 'text-slate-400'
+          }`}
+        >
+          <SettingsIcon className={`w-5 h-5 ${activeTab === 'settings' ? 'text-[#A83A35]' : 'text-slate-400'}`} />
+          Settings
+        </button>
+      </nav>
 
       {/* Delete Confirmation Modal Layer */}
       {showDeleteConfirm && (
