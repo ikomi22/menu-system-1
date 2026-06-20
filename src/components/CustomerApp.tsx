@@ -249,7 +249,7 @@ export default function CustomerApp({
               className="absolute inset-0 flex flex-col items-center justify-center gap-10 px-8 bg-cover bg-center"
               style={{
                 backgroundImage: config.backgroundImage
-                  ? `linear-gradient(rgba(26, 26, 26, 0.82), rgba(26, 26, 26, 0.90)), url('${config.backgroundImage}')`
+                  ? `linear-gradient(rgba(26, 26, 26, 0.52), rgba(26, 26, 26, 0.68)), url('${config.backgroundImage}')`
                   : 'none'
               }}
             >
