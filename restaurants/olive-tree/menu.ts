@@ -24,7 +24,7 @@ export const menuItems: MenuItem[] = [
     description: 'Mixed olives marinated with herbs.',
     price: 575,
     category: 'Chilled Mezzes',
-    imageUrl: 'https://images.unsplash.com/photo-1580913428735-bd3c269d6a82?w=800&q=80',
+    imageUrl: 'https://images.unsplash.com/photo-1534787238916-9ba6764efd4f?w=800&q=80',
     allergens: ['Sulphites'],
     isVegetarian: true,
     available: true,
