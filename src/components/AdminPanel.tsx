@@ -76,7 +76,7 @@ export default function AdminPanel({
   const initials = getInitials(config.name);
 
   // Derive demo credentials from restaurant name (e.g. "Blue Orchid" → admin@blueorchid.com / blueorchid2024)
-  const slug = config.name.toLowerCase().replace(/\s+/g, '');
+  const slug = config.name.toLowerCase().replace(/[^a-z0-9]/g, '');
   const demoEmail = `admin@${slug}.com`;
   const demoPassword = `${slug}2024`;
 
