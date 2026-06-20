@@ -12,8 +12,16 @@ import AdminPanel from './components/AdminPanel';
 
 type ViewMode = 'admin' | 'kiosk';
 
+// Bump this when menu source data changes to force a localStorage refresh
+const DATA_VERSION = '3';
+
 export default function App() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
+    if (localStorage.getItem('vms_data_version') !== DATA_VERSION) {
+      localStorage.removeItem('vms_menu_items');
+      localStorage.removeItem('vms_restaurant_config');
+      localStorage.setItem('vms_data_version', DATA_VERSION);
+    }
     const saved = localStorage.getItem('vms_menu_items');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
@@ -105,15 +113,25 @@ export default function App() {
     <div className="min-h-screen bg-[#1C1B19] text-slate-100 font-sans flex flex-col">
       <header className="hidden md:flex bg-[#121212]/90 backdrop-blur-md border-b border-white/5 px-6 py-3.5 items-center justify-between gap-4 select-none z-50 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#A83A35] to-[#C04840] text-white font-serif font-black flex items-center justify-center text-sm shadow-lg shadow-[#A83A35]/10">
-            A
+          <div
+            className="w-9 h-9 rounded-xl text-white font-serif font-black flex items-center justify-center text-sm shadow-lg"
+            style={{ background: `linear-gradient(135deg, ${config.primaryColour}, ${config.primaryColour}CC)` }}
+          >
+            {config.name.split(/\s+/).filter(Boolean).slice(0, 2).map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xs font-display font-medium tracking-widest text-[#2D5E3A] uppercase">
+              <h1 className="text-xs font-display font-medium tracking-widest uppercase" style={{ color: config.uiAccentColour ?? '#2D5E3A' }}>
                 {config.name}
               </h1>
-              <span className="text-[9px] uppercase font-bold tracking-widest bg-[#2D5E3A]/10 border border-[#2D5E3A]/20 px-1.5 py-0.5 rounded text-[#2D5E3A] flex items-center gap-0.5">
+              <span
+                className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-0.5"
+                style={{
+                  background: `${config.uiAccentColour ?? '#2D5E3A'}1A`,
+                  border: `1px solid ${config.uiAccentColour ?? '#2D5E3A'}33`,
+                  color: config.uiAccentColour ?? '#2D5E3A'
+                }}
+              >
                 <Crown className="w-2.5 h-2.5" />
                 Visual Menu System
               </span>

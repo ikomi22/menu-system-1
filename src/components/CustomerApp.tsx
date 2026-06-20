@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowLeft,
@@ -78,6 +78,15 @@ export default function CustomerApp({
   // List of active items (available: true)
   const activeItems = menuItems.filter(item => item.available);
 
+  // Derived category list in menu order (preserves first-seen order)
+  const categories = useMemo(() => {
+    const seen = new Set<string>();
+    return activeItems.reduce<string[]>((acc, item) => {
+      if (!seen.has(item.category)) { seen.add(item.category); acc.push(item.category); }
+      return acc;
+    }, []);
+  }, [activeItems]);
+
   // Filtered browse list
   const filteredItems = activeItems.filter(item => selectedCategory ? item.category === selectedCategory : true);
 
@@ -117,10 +126,13 @@ export default function CustomerApp({
     };
   }, [screen, menuItems]);
 
-  const selectCategory = (cat: Category) => {
+  const selectCategory = (cat: string) => {
     setSelectedCategory(cat);
     setScreen('browse');
   };
+
+  const formatCategoryLabel = (cat: string) =>
+    cat.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
   const selectItemDetail = (item: MenuItem) => {
     setSelectedItem(item);
@@ -160,6 +172,9 @@ export default function CustomerApp({
     return detailMap[name] || { icon: '⚠️', bg: 'bg-amber-500/10 text-amber-500 border-amber-500/20' };
   };
 
+  const accent = config.uiAccentColour ?? '#2D5E3A';
+  const primary = config.primaryColour;
+
   return (
     <div id="customer-kiosk-frame" className="relative kiosk-viewport bg-[#1a1a1a] text-white flex flex-col font-sans h-full overflow-hidden select-none">
       
@@ -193,8 +208,9 @@ export default function CustomerApp({
               onChange={e => { setPinInput(e.target.value); setPinError(false); }}
               onKeyDown={e => e.key === 'Enter' && handlePinSubmit()}
               className={`w-full text-center text-2xl tracking-[0.5em] bg-black/40 border rounded-xl px-4 py-3 text-white outline-none transition-all ${
-                pinError ? 'border-red-500' : 'border-white/20 focus:border-[#2D5E3A]'
+                pinError ? 'border-red-500' : 'border-white/20'
               }`}
+              style={!pinError ? { outlineColor: accent } : {}}
               placeholder="••••"
             />
             {pinError && <p className="text-red-400 text-xs -mt-2">Incorrect PIN</p>}
@@ -207,7 +223,8 @@ export default function CustomerApp({
               </button>
               <button
                 onClick={handlePinSubmit}
-                className="flex-1 py-2.5 rounded-xl bg-[#2D5E3A] text-white text-sm font-semibold hover:bg-[#3a7a4c] transition-all"
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-all"
+                style={{ backgroundColor: accent }}
               >
                 Unlock
               </button>
@@ -231,25 +248,15 @@ export default function CustomerApp({
               transition={{ duration: 0.5 }}
               className="absolute inset-0 flex flex-col items-center justify-center gap-10 px-8 bg-cover bg-center"
               style={{
-                backgroundImage: `linear-gradient(rgba(26, 26, 26, 0.85), rgba(26, 26, 26, 0.92)), url('/arco/arco1.jpg')`
+                backgroundImage: config.backgroundImage
+                  ? `linear-gradient(rgba(26, 26, 26, 0.82), rgba(26, 26, 26, 0.90)), url('${config.backgroundImage}')`
+                  : 'none'
               }}
             >
-              {/* Wordmark logo */}
-              <div className="w-full max-w-sm px-4">
-                {config.logo ? (
-                  <img
-                    src={config.logo}
-                    alt={config.name}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-auto object-contain"
-                    style={{ filter: 'invert(1)' }}
-                  />
-                ) : (
-                  <h1 className="font-serif text-6xl font-bold text-white text-center leading-tight">
-                    {config.name}
-                  </h1>
-                )}
-              </div>
+              {/* Wordmark */}
+              <p className="font-serif text-4xl font-bold tracking-widest uppercase text-center" style={{ color: primary }}>
+                {config.name}
+              </p>
 
               {/* Tagline */}
               {config.welcomeMessage && (
@@ -264,7 +271,8 @@ export default function CustomerApp({
                 onClick={() => setScreen('category')}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                className="w-72 h-14 rounded-lg bg-[#A83A35] text-white font-display font-semibold uppercase tracking-wider text-sm flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(168,58,53,0.35)] hover:bg-[#2D5E3A] transition-all cursor-pointer"
+                className="w-72 h-14 rounded-lg text-white font-display font-semibold uppercase tracking-wider text-sm flex items-center justify-center gap-2 transition-all cursor-pointer hover:opacity-90 active:scale-95"
+                style={{ backgroundColor: primary, boxShadow: `0 10px 30px ${primary}59` }}
               >
                 <Sparkles className="w-4 h-4 fill-white" />
                 Explore Our Menu
@@ -284,113 +292,46 @@ export default function CustomerApp({
               >
                 {/* Header */}
                 <div className="flex items-center justify-between h-10 border-b border-white/5 pb-4 shrink-0">
-                  <button 
+                  <button
                     id="category-back"
                     onClick={() => setScreen('welcome')}
                     className="group flex items-center gap-2 text-[#a0a0a0] hover:text-white transition-colors cursor-pointer"
                   >
-                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#2D5E3A]" />
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" style={{ color: accent }} />
                     <span className="font-sans text-xs tracking-wider uppercase font-medium">Welcome</span>
                   </button>
-                  <span className="font-sans tracking-widest text-[#2D5E3A] text-[10px] uppercase font-semibold">
+                  <span className="font-sans tracking-widest text-[10px] uppercase font-semibold" style={{ color: accent }}>
                     {config.name}
                   </span>
                   <div className="w-20" /> {/* Spacer */}
                 </div>
 
-              {/* Categories block */}
-              <div className="flex-1 grid grid-cols-2 gap-3 mt-4 overflow-y-auto no-scrollbar py-2">
-
-                {/* STARTERS CARD */}
-                <motion.button
-                  id="category-starters-btn"
-                  onClick={() => selectCategory('starters')}
-                  whileTap={{ scale: 0.97 }}
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
-                >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.starters}')` }} />
-                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Starters & Nibbles</h3>
-                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Olives · Garlic Bread · Bruschetta · Mains</p>
-                  </div>
-                </motion.button>
-
-                {/* MAINS CARD */}
-                <motion.button
-                  id="category-mains-btn"
-                  onClick={() => selectCategory('mains')}
-                  whileTap={{ scale: 0.97 }}
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
-                >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.mains}')` }} />
-                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Mains</h3>
-                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Lamb Shank · Seabass · Chicken · Short Rib</p>
-                  </div>
-                </motion.button>
-
-                {/* PASTA CARD */}
-                <motion.button
-                  id="category-pasta-btn"
-                  onClick={() => selectCategory('pasta')}
-                  whileTap={{ scale: 0.97 }}
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
-                >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.pasta}')` }} />
-                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Pasta & Risotto</h3>
-                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Carbonara · Linguine · Lasagne · Risotto</p>
-                  </div>
-                </motion.button>
-
-                {/* PIZZA CARD */}
-                <motion.button
-                  id="category-pizza-btn"
-                  onClick={() => selectCategory('pizza')}
-                  whileTap={{ scale: 0.97 }}
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
-                >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.pizza}')` }} />
-                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Pizza</h3>
-                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Stone-baked · Build Your Own · 9 Varieties</p>
-                  </div>
-                </motion.button>
-
-                {/* DESSERTS CARD */}
-                <motion.button
-                  id="category-desserts-btn"
-                  onClick={() => selectCategory('desserts')}
-                  whileTap={{ scale: 0.97 }}
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
-                >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.desserts}')` }} />
-                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Desserts</h3>
-                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Eton Mess · Cheesecake · Brownie · Ice Cream</p>
-                  </div>
-                </motion.button>
-
-                {/* DRINKS CARD */}
-                <motion.button
-                  id="category-drinks-btn"
-                  onClick={() => selectCategory('drinks')}
-                  whileTap={{ scale: 0.97 }}
-                  className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
-                >
-                  <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                       style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${CATEGORY_FALLBACK_IMAGES.drinks}')` }} />
-                  <div className="absolute inset-0 p-4 flex flex-col justify-end">
-                    <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">Drinks</h3>
-                    <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">Cocktails · Wine · Beer · Soft Drinks</p>
-                  </div>
-                </motion.button>
-
+              {/* Categories block — derived from live menu data */}
+              <div className="flex-1 overflow-y-auto no-scrollbar mt-4 py-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {categories.map(cat => {
+                  const imageUrl = CATEGORY_FALLBACK_IMAGES[cat] ?? 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80';
+                  const preview = activeItems.filter(i => i.category === cat).slice(0, 3).map(i => i.name).join(' · ');
+                  return (
+                    <motion.button
+                      key={cat}
+                      id={`category-${cat}-btn`}
+                      onClick={() => selectCategory(cat)}
+                      whileTap={{ scale: 0.97 }}
+                      className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-lg border border-white/5 block text-left cursor-pointer group"
+                    >
+                      <div
+                        className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+                        style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.05), rgba(0,0,0,0.82)), url('${imageUrl}')` }}
+                      />
+                      <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                        <h3 className="font-serif text-2xl text-white font-bold tracking-wide leading-tight">{formatCategoryLabel(cat)}</h3>
+                        {preview && <p className="font-sans text-white/65 text-xs mt-1.5 font-light tracking-wide">{preview}</p>}
+                      </div>
+                    </motion.button>
+                  );
+                })}
+              </div>
               </div>
             </motion.div>
           )}
@@ -407,7 +348,7 @@ export default function CustomerApp({
             >
               {/* Header with selected category */}
               <div className="flex items-center justify-between h-14 border-b border-white/5 pb-3 shrink-0">
-                <button 
+                <button
                   id="browse-back"
                   onClick={() => {
                     setSelectedCategory(null);
@@ -415,11 +356,11 @@ export default function CustomerApp({
                   }}
                   className="group flex items-center gap-2 text-[#a0a0a0] hover:text-white transition-colors cursor-pointer"
                 >
-                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform text-[#2D5E3A]" />
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" style={{ color: accent }} />
                   <span className="font-sans text-xs tracking-wider uppercase font-medium">Categories</span>
                 </button>
                 <span className="font-serif italic font-semibold text-white capitalize text-lg tracking-wide">
-                  {selectedCategory}
+                  {selectedCategory ? formatCategoryLabel(selectedCategory) : ''}
                 </span>
                 <span className="font-sans text-[10px] font-mono border border-gold-500/15 text-gold-500 bg-black/30 rounded px-2 py-0.5 tracking-wider uppercase">
                   {filteredItems.length} Available
@@ -437,35 +378,33 @@ export default function CustomerApp({
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 auto-rows-auto">
                     {filteredItems.map((item, index) => (
                       <motion.div
                         key={item.id}
                         id={`dish-card-${item.id}`}
                         initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
+                        transition={{ delay: Math.min(index * 0.04, 0.4) }}
                         onClick={() => selectItemDetail(item)}
                         whileTap={{ scale: 0.97 }}
-                        className="group bg-[#2C2C2C] border border-white/5 hover:border-[#2D5E3A]/40 rounded-xl overflow-hidden flex flex-col shadow-lg cursor-pointer transition-colors duration-300 relative"
+                        className="group bg-[#2C2C2C] border border-white/5 rounded-xl overflow-hidden shadow-lg cursor-pointer"
+                        style={{ contain: 'layout' }}
                       >
                         {/* 16:9 Image */}
-                        <div className="aspect-16/9 w-full overflow-hidden relative select-none">
-                          <img 
-                            src={item.imageUrl} 
-                            alt={item.name} 
+                        <div className="aspect-video w-full overflow-hidden relative select-none">
+                          <img
+                            src={item.imageUrl}
+                            alt={item.name}
                             referrerPolicy="no-referrer"
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
                             loading="lazy"
                           />
-                          
-                          {/* Allergen small indicator icons on cover overlay if present */}
                           {item.allergens.length > 0 && (
                             <div className="absolute top-2 right-2 bg-black/60 border border-white/5 rounded px-1.5 py-0.5 text-[8px] tracking-widest text-amber-400 font-semibold uppercase">
                               Contains Allergens
                             </div>
                           )}
-                          {/* V / GF badges */}
                           <div className="absolute bottom-2 left-2 flex gap-1">
                             {item.isVegetarian && (
                               <span className="text-[8px] font-bold uppercase tracking-wider bg-green-600/80 text-white px-1.5 py-0.5 rounded">V</span>
@@ -477,12 +416,12 @@ export default function CustomerApp({
                           <FoodAnimation category={item.category} variant="card" />
                         </div>
 
-                        {/* Dish title/price body */}
-                        <div className="p-4 flex-1 flex flex-col justify-between gap-2.5">
-                          <h4 className="font-sans font-bold text-white text-sm line-clamp-1 group-hover:text-[#2D5E3A] transition-colors leading-snug">
+                        {/* Dish title and price */}
+                        <div className="px-3 pt-2.5 pb-3">
+                          <h4 className="font-sans font-bold text-white text-xs sm:text-sm line-clamp-2 leading-snug">
                             {item.name}
                           </h4>
-                          <span className="font-display font-medium text-[#2D5E3A] text-[13px] tracking-wide block">
+                          <span className="font-display font-medium text-[13px] tracking-wide block mt-1.5" style={{ color: accent }}>
                             {formatPrice(item.price)}
                           </span>
                         </div>
@@ -532,7 +471,7 @@ export default function CustomerApp({
                     setScreen('browse');
                     setLightboxOpen(false);
                   }}
-                  className="absolute top-4 left-4 h-9 w-9 rounded-full bg-black/65 border border-white/10 flex items-center justify-center text-white hover:bg-black hover:border-[#2D5E3A]/40 transition-all select-none cursor-pointer scale-100 font-sans shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
+                  className="absolute top-4 left-4 h-9 w-9 rounded-full bg-black/65 border border-white/10 flex items-center justify-center text-white hover:bg-black transition-all select-none cursor-pointer scale-100 font-sans shadow-[0_4px_10px_rgba(0,0,0,0.5)]"
                 >
                   <ArrowLeft className="w-4 h-4 text-white" />
                 </button>
@@ -545,7 +484,7 @@ export default function CustomerApp({
                     {selectedItem.name}
                   </h2>
                   <div className="mt-3 flex items-center gap-3">
-                    <span className="font-display font-bold text-xl text-[#2D5E3A]">
+                    <span className="font-display font-bold text-xl" style={{ color: accent }}>
                       {formatPrice(selectedItem.price)}
                     </span>
                     {selectedItem.isVegetarian && (
@@ -585,7 +524,7 @@ export default function CustomerApp({
                           <button
                             key={paired.id}
                             onClick={() => selectItemDetail(paired)}
-                            className="flex-1 flex items-center gap-3 bg-[#2C2C2C] border border-white/5 hover:border-[#2D5E3A]/30 rounded-xl p-2.5 cursor-pointer transition-all group text-left"
+                            className="flex-1 flex items-center gap-3 bg-[#2C2C2C] border border-white/5 rounded-xl p-2.5 cursor-pointer transition-all group text-left"
                           >
                             <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
                               <img
@@ -596,10 +535,10 @@ export default function CustomerApp({
                               />
                             </div>
                             <div className="min-w-0">
-                              <span className="font-sans text-xs text-white font-semibold line-clamp-1 group-hover:text-[#2D5E3A] transition-colors block">
+                              <span className="font-sans text-xs text-white font-semibold line-clamp-1 block">
                                 {paired.name}
                               </span>
-                              <span className="font-display text-[#3A7A4C] text-xs font-medium block mt-0.5">
+                              <span className="font-display text-xs font-medium block mt-0.5" style={{ color: accent }}>
                                 {formatPrice(paired.price)}
                               </span>
                             </div>

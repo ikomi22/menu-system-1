@@ -54,6 +54,12 @@ interface AdminPanelProps {
 
 type AdminTab = 'dashboard' | 'add-item' | 'edit-item' | 'settings';
 
+function getInitials(name: string): string {
+  const words = name.split(/\s+/).filter(Boolean);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+}
+
 export default function AdminPanel({
   menuItems,
   onAddMenuItem,
@@ -65,26 +71,39 @@ export default function AdminPanel({
   onToggleOffline,
   onLaunchKiosk
 }: AdminPanelProps) {
+  const accent = config.uiAccentColour ?? '#2D5E3A';
+  const primary = config.primaryColour;
+  const initials = getInitials(config.name);
+
+  // Derive demo credentials from restaurant name (e.g. "Blue Orchid" → admin@blueorchid.com / blueorchid2024)
+  const slug = config.name.toLowerCase().replace(/\s+/g, '');
+  const demoEmail = `admin@${slug}.com`;
+  const demoPassword = `${slug}2024`;
+
   // Auth flow state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [email, setEmail] = useState('admin@arco.com');
-  const [password, setPassword] = useState('arco2024');
+  const [email, setEmail] = useState(demoEmail);
+  const [password, setPassword] = useState(demoPassword);
   const [authError, setAuthError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   // Active navigation tab
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-  
+
   // Category filter state in list
-  const [categoryFilter, setCategoryFilter] = useState<'all' | Category>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [catPage, setCatPage] = useState(0);
+  const resultsRef = useRef<HTMLDivElement>(null);
+
+  const CATS_PER_PAGE = 5;
 
   // Editing items state
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   // Form Fields State
   const [formName, setFormName] = useState('');
-  const [formCategory, setFormCategory] = useState<Category>('starters');
+  const [formCategory, setFormCategory] = useState<string>('');
   const [formPriceStr, setFormPriceStr] = useState(''); // E.g. "12.50"
   const [formDescription, setFormDescription] = useState('');
   const [formAllergens, setFormAllergens] = useState<string[]>([]);
@@ -109,11 +128,11 @@ export default function AdminPanel({
   // Handle manual login
   const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'admin@arco.com' && password === 'arco2024') {
+    if (email === demoEmail && password === demoPassword) {
       setIsAuthenticated(true);
       setAuthError('');
     } else {
-      setAuthError('Incorrect email or password. Use: admin@arco.com / arco2024');
+      setAuthError('Incorrect email or password.');
     }
   };
 
@@ -283,16 +302,12 @@ export default function AdminPanel({
     return matchesCategory && matchesSearch;
   });
 
-  // Simple stats helper
+  // Dynamic stats
+  const uniqueCategories = [...new Set(menuItems.map(i => i.category))];
   const countStats = {
     total: menuItems.length,
-    starters: menuItems.filter(i => i.category === 'starters').length,
-    mains: menuItems.filter(i => i.category === 'mains').length,
-    pasta: menuItems.filter(i => i.category === 'pasta').length,
-    pizza: menuItems.filter(i => i.category === 'pizza').length,
-    desserts: menuItems.filter(i => i.category === 'desserts').length,
-    drinks: menuItems.filter(i => i.category === 'drinks').length,
-    unavailable: menuItems.filter(i => !i.available).length
+    unavailable: menuItems.filter(i => !i.available).length,
+    byCategory: Object.fromEntries(uniqueCategories.map(cat => [cat, menuItems.filter(i => i.category === cat).length])),
   };
 
   if (!isAuthenticated) {
@@ -300,8 +315,8 @@ export default function AdminPanel({
       <div id="admin-login-layout" className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-6 lg:px-8 font-sans">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-[#2D5E3A] font-serif font-black text-xl shadow-md border border-[#2D5E3A]/20">
-              A
+            <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center font-serif font-black text-base shadow-md" style={{ color: accent, borderColor: `${accent}33`, borderWidth: 1 }}>
+              {initials}
             </div>
             <h1 className="text-xl font-display font-black text-slate-800 tracking-wider uppercase">
               Visual Menu Service
@@ -329,8 +344,10 @@ export default function AdminPanel({
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2D5E3A] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
-                    placeholder="admin@arco.com"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
+                    placeholder="Email address"
+                    onFocus={e => { e.target.style.borderColor = accent; e.target.style.boxShadow = `0 0 0 2px ${accent}33`; }}
+                    onBlur={e => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                   />
                 </div>
               </div>
@@ -346,8 +363,10 @@ export default function AdminPanel({
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#2D5E3A] focus:border-transparent outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-slate-800 font-sans text-sm focus:bg-white transition-all bg-slate-50"
                     placeholder="••••••••"
+                    onFocus={e => { e.target.style.borderColor = accent; e.target.style.boxShadow = `0 0 0 2px ${accent}33`; }}
+                    onBlur={e => { e.target.style.borderColor = ''; e.target.style.boxShadow = ''; }}
                   />
                   <button
                     type="button"
@@ -372,7 +391,8 @@ export default function AdminPanel({
                     id="remember-me"
                     type="checkbox"
                     defaultChecked
-                    className="h-4 w-4 text-[#2D5E3A] focus:ring-[#2D5E3A] border-slate-300 rounded"
+                    className="h-4 w-4 border-slate-300 rounded"
+                    style={{ accentColor: accent }}
                   />
                   <label htmlFor="remember-me" className="ml-2 block text-xs font-medium text-slate-500 select-none">
                     Persist administrator token
@@ -382,8 +402,9 @@ export default function AdminPanel({
                 <div className="text-xs">
                   <button
                     type="button"
-                    onClick={() => alert(`Reset email template simulated! Creds preset: admin@arco.com / arco2024`)}
-                    className="font-medium text-[#2D5E3A] hover:text-amber-600 cursor-pointer"
+                    onClick={() => alert('Contact your system administrator to reset your password.')}
+                    className="font-medium cursor-pointer"
+                    style={{ color: accent }}
                   >
                     Forgot password?
                   </button>
@@ -394,7 +415,7 @@ export default function AdminPanel({
                 <button
                   id="login-submit-btn"
                   type="submit"
-                  className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold tracking-wide text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2D5E3A] transition-all cursor-pointer"
+                  className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold tracking-wide text-white bg-slate-900 hover:bg-slate-800 focus:outline-none transition-all cursor-pointer"
                 >
                   Sign In
                 </button>
@@ -408,12 +429,12 @@ export default function AdminPanel({
               <button
                 type="button"
                 onClick={() => {
-                  setEmail('admin@arco.com');
-                  setPassword('arco2024');
+                  setEmail(demoEmail);
+                  setPassword(demoPassword);
                 }}
-                className="w-full py-2 bg-slate-50 border border-slate-100 hover:border-[#2D5E3A]/30 text-xs font-medium text-slate-600 rounded-xl flex items-center justify-center gap-1 cursor-pointer hover:bg-white transiton-all"
+                className="w-full py-2 bg-slate-50 border border-slate-100 text-xs font-medium text-slate-600 rounded-xl flex items-center justify-center gap-1 cursor-pointer hover:bg-white transition-all"
               >
-                <Key className="w-3 h-3 text-[#2D5E3A]" />
+                <Key className="w-3 h-3" style={{ color: accent }} />
                 Auto-fill Admin Credentials
               </button>
             </div>
@@ -429,12 +450,12 @@ export default function AdminPanel({
       {/* Top Admin Header Bar */}
       <header className="bg-white border-b border-slate-100 shrink-0 select-none px-6 py-4 flex items-center justify-between shadow-xs relative z-30">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-slate-900 text-[#2D5E3A] font-serif font-black text-lg flex items-center justify-center border border-[#2D5E3A]/10 shadow">
-            A
+          <div className="w-9 h-9 rounded-lg bg-slate-900 font-serif font-black text-base flex items-center justify-center shadow" style={{ color: accent, borderColor: `${accent}1A`, borderWidth: 1 }}>
+            {initials}
           </div>
           <div>
             <h2 className="font-display font-black text-sm tracking-wider uppercase text-slate-900 leading-none">
-              ARCO ADMIN
+              {config.name.toUpperCase()} ADMIN
             </h2>
             <span className="text-[10px] text-zinc-500 tracking-wide inline-block mt-0.5">
               Visual Menu System • Core Console
@@ -463,7 +484,7 @@ export default function AdminPanel({
           <div className="hidden md:flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100 font-sans text-xs text-slate-700">
             <span className="font-semibold text-slate-800">Admin Owner</span>
             <span className="text-[#a0a0a0]">•</span>
-            <span className="text-zinc-500 italic">arco Coventry</span>
+            <span className="text-zinc-500 italic">{config.name}</span>
           </div>
 
           <button
@@ -493,18 +514,24 @@ export default function AdminPanel({
                 onClick={() => { setActiveTab('dashboard'); setEditingItemId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
                   activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item'
-                    ? 'bg-[#2D5E3A]/10 text-slate-900 border-l-4 border-[#2D5E3A]' 
+                    ? 'text-slate-900'
                     : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
                 }`}
+                style={
+                  activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item'
+                    ? { backgroundColor: `${accent}1A`, borderLeft: `4px solid ${accent}` }
+                    : {}
+                }
               >
-                <LayoutDashboard className="w-4 h-4 shrink-0 text-[#2D5E3A]" />
+                <LayoutDashboard className="w-4 h-4 shrink-0" style={{ color: accent }} />
                 <span>Menu Database</span>
               </button>
 
               <button
                 id="sidebar-launch-kiosk-btn"
                 onClick={onLaunchKiosk}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer bg-[#A83A35] text-white hover:bg-[#2D5E3A]"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer text-white hover:opacity-90"
+                style={{ backgroundColor: primary }}
               >
                 <Tablet className="w-4 h-4 shrink-0" />
                 <span>Launch Menu</span>
@@ -514,12 +541,15 @@ export default function AdminPanel({
                 id="sidebar-tab-settings"
                 onClick={() => { setActiveTab('settings'); setEditingItemId(null); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium text-xs tracking-wider uppercase transition-all cursor-pointer ${
-                  activeTab === 'settings'
-                    ? 'bg-[#2D5E3A]/10 text-slate-900 border-l-4 border-[#2D5E3A]' 
-                    : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
+                  activeTab === 'settings' ? 'text-slate-900' : 'text-[#a0a0a0] hover:text-slate-800 hover:bg-slate-50'
                 }`}
+                style={
+                  activeTab === 'settings'
+                    ? { backgroundColor: `${accent}1A`, borderLeft: `4px solid ${accent}` }
+                    : {}
+                }
               >
-                <SettingsIcon className="w-4 h-4 shrink-0 text-[#2D5E3A]" />
+                <SettingsIcon className="w-4 h-4 shrink-0" style={{ color: accent }} />
                 <span>Brand Settings</span>
               </button>
             </div>
@@ -535,21 +565,13 @@ export default function AdminPanel({
                   <span className="text-[9px] text-zinc-500 font-medium">Daily Browsing</span>
                 </div>
                 <div className="bg-white p-2.5 rounded-lg border border-slate-100">
-                  <span className="block text-lg font-bold font-display text-[#2D5E3A]">+18%</span>
-                  <span className="text-[9px] text-emerald-600 font-semibold">Upsell outcome</span>
+                  <span className="block text-lg font-bold font-display" style={{ color: accent }}>+18%</span>
+                  <span className="text-[9px] font-semibold" style={{ color: accent }}>Upsell outcome</span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="px-4">
-            <div className="p-3 bg-zinc-900 text-white rounded-xl text-center select-none border border-white/5 space-y-2">
-              <span className="text-[10px] font-semibold text-[#2D5E3A] block tracking-wider">Kiosk State Hub</span>
-              <p className="text-[8px] text-[#a0a0a0] leading-normal font-light">
-                Real-time tablet fleet synchronization is live and fully active.
-              </p>
-            </div>
-          </div>
         </aside>
 
         {/* Content Dynamic Center Panel */}
@@ -571,12 +593,12 @@ export default function AdminPanel({
                 </div>
 
                 <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-[#2D5E3A]/10 text-[#2D5E3A] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${accent}1A`, color: accent }}>
                     <Utensils className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Starters</span>
-                    <span className="text-xs text-slate-400">{countStats.starters} Items</span>
+                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Available</span>
+                    <span className="text-xs text-slate-400">{countStats.total - countStats.unavailable} Active</span>
                   </div>
                 </div>
 
@@ -585,8 +607,8 @@ export default function AdminPanel({
                     <GlassWater className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Pasta & Risotto</span>
-                    <span className="text-xs text-slate-400">{countStats.pasta} Dishes</span>
+                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Categories</span>
+                    <span className="text-xs text-slate-400">{uniqueCategories.length} Sections</span>
                   </div>
                 </div>
 
@@ -595,38 +617,17 @@ export default function AdminPanel({
                     <Cake className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Pizza</span>
-                    <span className="text-xs text-slate-400">{countStats.pizza} Varieties</span>
+                    <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider block">Unavailable</span>
+                    <span className="text-xs text-slate-400">{countStats.unavailable} Hidden</span>
                   </div>
                 </div>
               </div>
 
-              {/* Controls bar (Tabs and Search) */}
-              <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
-                
-                {/* Tabs filter */}
-                <div className="w-full md:w-auto self-start md:self-auto">
-                  <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-lg">
-                    {(['all', 'starters', 'mains', 'pasta', 'pizza', 'desserts', 'drinks'] as const).map(tab => (
-                      <button
-                        key={tab}
-                        id={`tab-filter-${tab}`}
-                        onClick={() => setCategoryFilter(tab)}
-                        className={`text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap ${
-                          categoryFilter === tab
-                            ? 'bg-white text-slate-900 shadow-xs border-b border-white/10'
-                            : 'text-slate-500 hover:text-slate-900'
-                        }`}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Right controls: search input and Create button */}
-                <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-stretch sm:items-center">
-                  <div className="relative flex-1 sm:w-60">
+              {/* Controls bar */}
+              <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-xs space-y-3">
+                {/* Top row: search + action buttons — always fully visible */}
+                <div className="flex flex-wrap gap-3 items-center justify-between">
+                  <div className="relative w-full sm:w-64">
                     <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
                     <input
                       id="menu-search-input"
@@ -634,32 +635,99 @@ export default function AdminPanel({
                       placeholder="Search recipes..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full text-xs font-sans rounded-lg pl-9 py-2.5 pr-4 border border-slate-200 focus:ring-1 focus:ring-[#2D5E3A] focus:bg-white bg-slate-50 outline-none text-slate-800 transition-all font-light"
+                      className="w-full text-xs font-sans rounded-lg pl-9 py-2.5 pr-4 border border-slate-200 focus:bg-white bg-slate-50 outline-none text-slate-800 transition-all font-light"
                     />
                   </div>
 
-                  <button
-                    id="add-new-item-btn"
-                    onClick={initAddForm}
-                    className="bg-[#A83A35] hover:bg-[#2D5E3A] text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-lg shadow-[#A83A35]/10 cursor-pointer transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Recipe Item
-                  </button>
-                    
-                  <button
-                    id="launch-kiosk-header-btn"
-                    onClick={onLaunchKiosk}
-                    className="bg-[#A83A35] hover:bg-[#2D5E3A] text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 shadow-lg shadow-[#A83A35]/10 cursor-pointer transition-all"
-                  >
-                    <Tablet className="w-4 h-4" />
-                    Launch Menu
-                  </button>
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      id="add-new-item-btn"
+                      onClick={initAddForm}
+                      className="text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center gap-1.5 cursor-pointer transition-all hover:opacity-90 whitespace-nowrap"
+                      style={{ backgroundColor: primary }}
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Recipe Item
+                    </button>
+
+                    <button
+                      id="launch-kiosk-header-btn"
+                      onClick={onLaunchKiosk}
+                      className="text-white text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-lg flex items-center gap-1.5 cursor-pointer transition-all hover:opacity-90 whitespace-nowrap"
+                      style={{ backgroundColor: accent }}
+                    >
+                      <Tablet className="w-4 h-4" />
+                      Launch Menu
+                    </button>
+                  </div>
                 </div>
+
+                {/* Paginated category tabs */}
+                {(() => {
+                  const allTabs = ['all', ...uniqueCategories];
+                  const totalPages = Math.ceil((allTabs.length - 1) / CATS_PER_PAGE);
+                  const pageStart = catPage * CATS_PER_PAGE + 1;
+                  const pageTabs = ['all', ...allTabs.slice(pageStart, pageStart + CATS_PER_PAGE)];
+                  return (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-lg flex-1">
+                        {pageTabs.map(tab => (
+                          <button
+                            key={tab}
+                            id={`tab-filter-${tab}`}
+                            onClick={() => {
+                              setCategoryFilter(tab);
+                              setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                            }}
+                            className={`text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap ${
+                              categoryFilter === tab
+                                ? 'bg-white text-slate-900 shadow-xs'
+                                : 'text-slate-500 hover:text-slate-900'
+                            }`}
+                          >
+                            {tab === 'all' ? 'All' : tab.replace(/-/g, ' ')}
+                          </button>
+                        ))}
+                      </div>
+                      {totalPages > 1 && (
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            onClick={() => setCatPage(p => Math.max(0, p - 1))}
+                            disabled={catPage === 0}
+                            className="px-2.5 py-1.5 text-[11px] font-bold rounded border border-slate-200 text-slate-500 hover:text-slate-900 disabled:opacity-30 cursor-pointer disabled:cursor-default transition-all"
+                          >
+                            ‹ Prev
+                          </button>
+                          {Array.from({ length: totalPages }, (_, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setCatPage(i)}
+                              className={`w-6 h-6 text-[11px] font-bold rounded border transition-all cursor-pointer ${
+                                catPage === i
+                                  ? 'text-white border-transparent'
+                                  : 'border-slate-200 text-slate-500 hover:text-slate-900'
+                              }`}
+                              style={catPage === i ? { backgroundColor: accent } : {}}
+                            >
+                              {i + 1}
+                            </button>
+                          ))}
+                          <button
+                            onClick={() => setCatPage(p => Math.min(totalPages - 1, p + 1))}
+                            disabled={catPage === totalPages - 1}
+                            className="px-2.5 py-1.5 text-[11px] font-bold rounded border border-slate-200 text-slate-500 hover:text-slate-900 disabled:opacity-30 cursor-pointer disabled:cursor-default transition-all"
+                          >
+                            Next ›
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Recipes database list layout table container */}
-              <div className="bg-white rounded-xl border border-slate-100 shadow-xs overflow-hidden select-none">
+              <div ref={resultsRef} className="bg-white rounded-xl border border-slate-100 shadow-xs overflow-hidden select-none">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                   <h3 className="font-serif font-semibold text-slate-800 text-base">Menu Items Database</h3>
                   <span className="text-[10px] text-zinc-500 italic">Showing {filteredList.length} of {menuItems.length} records</span>
@@ -689,7 +757,7 @@ export default function AdminPanel({
                           <tr key={item.id} className="hover:bg-slate-50/60 transition-colors">
                             {/* Card Item Preview Image */}
                             <td className="px-6 py-4 shrink-0">
-                              <div className="w-14 aspect-16/9 rounded bg-slate-100 overflow-hidden relative border border-slate-200">
+                              <div className="w-14 aspect-video rounded bg-slate-100 overflow-hidden relative border border-slate-200">
                                 <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                               </div>
                             </td>
@@ -714,20 +782,8 @@ export default function AdminPanel({
 
                             {/* Category badge */}
                             <td className="px-6 py-4 font-sans text-[10px] font-bold uppercase tracking-wider">
-                              <span className={`px-2 py-0.5 rounded ${
-                                item.category === 'starters'
-                                  ? 'bg-amber-500/10 text-amber-700'
-                                  : item.category === 'mains'
-                                    ? 'bg-orange-500/10 text-orange-700'
-                                    : item.category === 'pasta'
-                                      ? 'bg-yellow-500/10 text-yellow-700'
-                                      : item.category === 'pizza'
-                                        ? 'bg-red-500/10 text-red-700'
-                                        : item.category === 'drinks'
-                                          ? 'bg-indigo-500/10 text-indigo-700'
-                                          : 'bg-pink-500/10 text-pink-700'
-                              }`}>
-                                {item.category}
+                              <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                                {item.category.replace(/-/g, ' ')}
                               </span>
                             </td>
 
@@ -819,7 +875,7 @@ export default function AdminPanel({
                       required
                       value={formName}
                       onChange={(e) => setFormName(e.target.value)}
-                      className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all ${
+                      className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 transition-all ${
                         formErrors.name ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                       }`}
                       placeholder="E.g. Roasted Rack of Lamb"
@@ -836,15 +892,14 @@ export default function AdminPanel({
                     <select
                       id="form-item-category"
                       value={formCategory}
-                      onChange={(e) => setFormCategory(e.target.value as Category)}
-                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all font-sans cursor-pointer"
+                      onChange={(e) => setFormCategory(e.target.value)}
+                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 transition-all font-sans cursor-pointer"
                     >
-                      <option value="starters">Starters &amp; Nibbles</option>
-                      <option value="mains">Mains</option>
-                      <option value="pasta">Pasta &amp; Risotto</option>
-                      <option value="pizza">Pizza</option>
-                      <option value="desserts">Desserts</option>
-                      <option value="drinks">Drinks</option>
+                      {uniqueCategories.map(cat => (
+                        <option key={cat} value={cat}>
+                          {cat.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -865,7 +920,7 @@ export default function AdminPanel({
                         required
                         value={formPriceStr}
                         onChange={(e) => setFormPriceStr(e.target.value)}
-                        className={`block w-full pl-8 pr-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all font-semibold ${
+                        className={`block w-full pl-8 pr-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 transition-all font-semibold ${
                           formErrors.price ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                         }`}
                         placeholder="14.50"
@@ -935,15 +990,16 @@ export default function AdminPanel({
                         type="button"
                         onClick={handleGenerateDescription}
                         disabled={isGeneratingDesc || !formName.trim()}
-                        className={`flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer ${
+                        className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all cursor-pointer"
+                        style={
                           isGeneratingDesc || !formName.trim()
-                            ? 'bg-slate-50 border-slate-200 text-slate-300 cursor-not-allowed'
-                            : 'bg-[#2D5E3A]/10 border-[#2D5E3A]/40 text-[#2D5E3A] hover:bg-[#2D5E3A]/20 hover:border-[#2D5E3A]'
-                        }`}
+                            ? { background: '#f8fafc', borderColor: '#e2e8f0', color: '#cbd5e1', cursor: 'not-allowed' }
+                            : { background: `${accent}1A`, borderColor: `${accent}66`, color: accent }
+                        }
                       >
                         {isGeneratingDesc ? (
                           <>
-                            <span className="w-3 h-3 border-2 border-[#2D5E3A]/30 border-t-[#2D5E3A] rounded-full animate-spin inline-block" />
+                            <span className="w-3 h-3 border-2 rounded-full animate-spin inline-block" style={{ borderColor: `${accent}4D`, borderTopColor: accent }} />
                             <span>Generating...</span>
                           </>
                         ) : (
@@ -963,7 +1019,7 @@ export default function AdminPanel({
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     rows={3}
-                    className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all leading-normal ${
+                    className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 transition-all leading-normal ${
                       formErrors.description ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                     }`}
                     placeholder="Provide a luxurious sensory description of preparation methods, seasoning, or cuts. Highly visual words trigger appetism. E.g. 'Dry-aged Prime cuts layered in wild herbs...'"
@@ -992,7 +1048,7 @@ export default function AdminPanel({
                         required
                         value={formImageUrl}
                         onChange={(e) => setFormImageUrl(e.target.value)}
-                        className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all ${
+                        className={`block w-full px-4 py-3 border rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 transition-all ${
                           formErrors.imageUrl ? 'border-red-400 focus:ring-red-500' : 'border-slate-200'
                         }`}
                         placeholder="Paste Unsplash or static image URL here..."
@@ -1004,7 +1060,7 @@ export default function AdminPanel({
 
                     {/* Quick Mock Crop helper box */}
                     <div className="h-11 px-4 border border-dashed border-slate-300 rounded-xl flex items-center justify-center gap-1.5 text-xs text-slate-500 bg-slate-50 text-center font-medium font-sans">
-                      <Upload className="w-4 h-4 text-[#2D5E3A]" />
+                      <Upload className="w-4 h-4" style={{ color: accent }} />
                       <span className="hidden sm:inline">16:9 Interactive Autocrop Enabled</span>
                     </div>
                   </div>
@@ -1020,9 +1076,10 @@ export default function AdminPanel({
                           key={preset.name}
                           type="button"
                           onClick={() => setFormImageUrl(preset.url)}
-                          className={`group aspect-16/9 rounded-lg overflow-hidden border-2 transition-all relative block shrink-0 ${
-                            formImageUrl === preset.url ? 'border-[#2D5E3A] scale-95 shadow-md' : 'border-transparent opacity-65 hover:opacity-100'
+                          className={`group aspect-video rounded-lg overflow-hidden border-2 transition-all relative block shrink-0 ${
+                            formImageUrl === preset.url ? 'scale-95 shadow-md' : 'border-transparent opacity-65 hover:opacity-100'
                           }`}
+                          style={formImageUrl === preset.url ? { borderColor: accent } : {}}
                         >
                           <img src={preset.url} alt={preset.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1036,7 +1093,7 @@ export default function AdminPanel({
                   {/* Loaded Image Thumbnail Preview Box */}
                   {formImageUrl && (
                     <div className="p-3 bg-slate-100 border border-slate-200 rounded-xl flex items-center gap-4">
-                      <div className="w-20 aspect-16/9 rounded overflow-hidden relative border border-slate-300 bg-slate-200 shrink-0">
+                      <div className="w-20 aspect-video rounded overflow-hidden relative border border-slate-300 bg-slate-200 shrink-0">
                         <img 
                           src={formImageUrl} 
                           alt="Thumbnail Preview" 
@@ -1072,14 +1129,14 @@ export default function AdminPanel({
                           key={allergen}
                           type="button"
                           onClick={() => handleToggleAllergen(allergen)}
-                          className={`py-2 px-2.5 rounded-xl border-2 text-[11px] font-bold text-center block transition-all cursor-pointer ${
-                            isChecked 
-                              ? 'bg-[#2D5E3A]/10 border-[#2D5E3A] text-[#2D5E3A] shadow-xs'
-                              : 'bg-white border-slate-100 text-slate-500 hover:border-[#2D5E3A]/35'
-                          }`}
+                          className="py-2 px-2.5 rounded-xl border-2 text-[11px] font-bold text-center block transition-all cursor-pointer"
+                          style={isChecked
+                            ? { background: `${accent}1A`, borderColor: accent, color: accent }
+                            : { background: 'white', borderColor: '#f1f5f9', color: '#64748b' }
+                          }
                         >
                           <div className="flex items-center justify-center gap-1">
-                            {isChecked && <Check className="w-3 h-3 text-[#2D5E3A] shrink-0" />}
+                            {isChecked && <Check className="w-3 h-3 shrink-0" style={{ color: accent }} />}
                             <span className="truncate">{allergen}</span>
                           </div>
                         </button>
@@ -1112,23 +1169,20 @@ export default function AdminPanel({
                           disabled={isDisabled}
                           onClick={() => handleTogglePairing(candidate.id)}
                           className={`flex items-center gap-2 p-2 rounded-xl border-2 text-left transition-all ${
-                            isSelected
-                              ? 'bg-[#2D5E3A]/10 border-[#2D5E3A] text-slate-900 cursor-pointer'
-                              : isDisabled
-                                ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed opacity-50'
-                                : 'bg-white border-slate-100 text-slate-600 hover:border-[#2D5E3A]/35 cursor-pointer'
+                            isDisabled ? 'bg-slate-50 border-slate-100 text-slate-300 cursor-not-allowed opacity-50' : 'cursor-pointer'
                           }`}
+                          style={isSelected ? { background: `${accent}1A`, borderColor: accent, color: '#0f172a' } : {}}
                         >
                           <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-slate-200">
                             <img src={candidate.imageUrl} alt={candidate.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <span className="text-[10px] font-semibold line-clamp-1 block leading-tight">{candidate.name}</span>
-                            <span className={`text-[9px] font-mono ${isSelected ? 'text-[#2D5E3A]' : 'text-zinc-500'}`}>
+                            <span className="text-[9px] font-mono" style={{ color: isSelected ? accent : '#71717a' }}>
                               £{(candidate.price / 100).toFixed(2)}
                             </span>
                           </div>
-                          {isSelected && <Check className="w-3 h-3 text-[#2D5E3A] shrink-0" />}
+                          {isSelected && <Check className="w-3 h-3 shrink-0" style={{ color: accent }} />}
                         </button>
                       );
                     })}
@@ -1148,7 +1202,7 @@ export default function AdminPanel({
                     type="submit"
                     className="px-6 py-3 bg-zinc-900 hover:bg-zinc-800 font-display font-semibold uppercase tracking-wider text-white rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-lg shadow-zinc-900/10 transition-all"
                   >
-                    <Check className="w-4 h-4 text-[#2D5E3A]" />
+                    <Check className="w-4 h-4" style={{ color: accent }} />
                     {editingItemId ? 'Update Recipe' : 'Save Recipe'}
                   </button>
                 </div>
@@ -1180,7 +1234,7 @@ export default function AdminPanel({
                     required
                     value={configName}
                     onChange={(e) => setConfigName(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all font-serif font-semibold"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 transition-all font-serif font-semibold"
                     placeholder="arco Bar &amp; Ristorante"
                   />
                 </div>
@@ -1196,7 +1250,7 @@ export default function AdminPanel({
                     required
                     value={configLogo}
                     onChange={(e) => setConfigLogo(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-zinc-600 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-zinc-600 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 transition-all"
                   />
                   <div className="flex gap-4 items-center mt-3 p-2 bg-slate-50 border border-slate-100 rounded-xl">
                     <div className="w-12 h-12 rounded-full border border-slate-200 bg-white overflow-hidden p-1 flex items-center justify-center shadow-xs shrink-0">
@@ -1222,7 +1276,7 @@ export default function AdminPanel({
                     maxLength={60}
                     value={configWelcome}
                     onChange={(e) => setConfigWelcome(e.target.value)}
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-[#2D5E3A] transition-all italic font-light font-serif"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl outline-none text-xs text-slate-800 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-slate-300 transition-all italic font-light font-serif"
                     placeholder="E.g. Indulge in culinary excellence."
                   />
                 </div>
@@ -1262,7 +1316,8 @@ export default function AdminPanel({
                     onClick={() => {
                       alert('Simulating password change link dispatch to active partner email account!');
                     }}
-                    className="text-xs font-medium text-[#2D5E3A] hover:text-amber-600 underline cursor-pointer"
+                    className="text-xs font-medium underline cursor-pointer"
+                    style={{ color: accent }}
                   >
                     Change Admin Password
                   </button>
@@ -1272,7 +1327,7 @@ export default function AdminPanel({
                     type="submit"
                     className="px-5 py-2.5 bg-zinc-900 hover:bg-zinc-800 font-display font-semibold uppercase tracking-wider text-white rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-all"
                   >
-                    <Check className="w-3.5 h-3.5 text-[#2D5E3A]" />
+                    <Check className="w-3.5 h-3.5" style={{ color: accent }} />
                     Save Settings
                   </button>
                 </div>
@@ -1285,33 +1340,37 @@ export default function AdminPanel({
 
       {/* Mobile Bottom Tab Bar */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-100 flex z-30 shadow-lg">
-        <button
-          onClick={() => { setActiveTab('dashboard'); setEditingItemId(null); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${
-            activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item'
-              ? 'text-[#A83A35]'
-              : 'text-slate-400'
-          }`}
-        >
-          <LayoutDashboard className={`w-5 h-5 ${activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item' ? 'text-[#A83A35]' : 'text-slate-400'}`} />
-          Menu
-        </button>
-        <button
-          onClick={onLaunchKiosk}
-          className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400"
-        >
-          <Tablet className="w-5 h-5" />
-          Launch
-        </button>
-        <button
-          onClick={() => { setActiveTab('settings'); setEditingItemId(null); }}
-          className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${
-            activeTab === 'settings' ? 'text-[#A83A35]' : 'text-slate-400'
-          }`}
-        >
-          <SettingsIcon className={`w-5 h-5 ${activeTab === 'settings' ? 'text-[#A83A35]' : 'text-slate-400'}`} />
-          Settings
-        </button>
+        {(() => {
+          const menuActive = activeTab === 'dashboard' || activeTab === 'add-item' || activeTab === 'edit-item';
+          const settingsActive = activeTab === 'settings';
+          return (
+            <>
+              <button
+                onClick={() => { setActiveTab('dashboard'); setEditingItemId(null); }}
+                className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors"
+                style={{ color: menuActive ? primary : '#94a3b8' }}
+              >
+                <LayoutDashboard className="w-5 h-5" />
+                Menu
+              </button>
+              <button
+                onClick={onLaunchKiosk}
+                className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider text-slate-400"
+              >
+                <Tablet className="w-5 h-5" />
+                Launch
+              </button>
+              <button
+                onClick={() => { setActiveTab('settings'); setEditingItemId(null); }}
+                className="flex-1 flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors"
+                style={{ color: settingsActive ? primary : '#94a3b8' }}
+              >
+                <SettingsIcon className="w-5 h-5" />
+                Settings
+              </button>
+            </>
+          );
+        })()}
       </nav>
 
       {/* Delete Confirmation Modal Layer */}

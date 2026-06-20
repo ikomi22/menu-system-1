@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-export type Category = 'starters' | 'mains' | 'pasta' | 'pizza' | 'desserts' | 'drinks';
+export type Category = string;
 
 export interface MenuItem {
   id: string;
@@ -24,8 +24,10 @@ export interface MenuItem {
 export interface RestaurantConfig {
   name: string;
   logo: string; // Base64 or URL
-  primaryColour: string; // hex
+  primaryColour: string; // hex — CTA button backgrounds only
   accentColour: string; // hex
+  uiAccentColour?: string; // hex — text, icons, borders, active states
+  backgroundImage?: string; // welcome screen hero image path
   welcomeMessage: string;
   pin: string;
   lastUpdated: number;
