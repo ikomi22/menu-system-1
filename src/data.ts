@@ -8,6 +8,8 @@ import { config as aquaConfig, categoryFallbacks as aquaCategoryFallbacks } from
 import { menuItems as aquaMenuItems } from '../restaurants/aqua/menu';
 import { config as entreeConfig, categoryFallbacks as entreeCategoryFallbacks } from '../restaurants/entree-steakhouse/config';
 import { menuItems as entreeMenuItems } from '../restaurants/entree-steakhouse/menu';
+import { config as oliveTreeConfig, categoryFallbacks as oliveTreeCategoryFallbacks } from '../restaurants/olive-tree/config';
+import { menuItems as oliveTreeMenuItems } from '../restaurants/olive-tree/menu';
 
 type RestaurantEntry = {
   config: RestaurantConfig;
@@ -35,6 +37,11 @@ const registry: Record<string, RestaurantEntry> = {
     config: entreeConfig,
     menuItems: entreeMenuItems,
     categoryFallbacks: entreeCategoryFallbacks,
+  },
+  'olive-tree': {
+    config: oliveTreeConfig,
+    menuItems: oliveTreeMenuItems,
+    categoryFallbacks: oliveTreeCategoryFallbacks,
   },
 };
 
