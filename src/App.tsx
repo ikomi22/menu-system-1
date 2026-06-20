@@ -13,7 +13,7 @@ import AdminPanel from './components/AdminPanel';
 type ViewMode = 'admin' | 'kiosk';
 
 // Bump this when menu source data changes to force a localStorage refresh
-const DATA_VERSION = '4';
+const DATA_VERSION = '5';
 
 export default function App() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {

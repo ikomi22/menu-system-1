@@ -6,6 +6,8 @@ import { config as blueOrchidConfig, categoryFallbacks as blueOrchidCategoryFall
 import { menuItems as blueOrchidMenuItems } from '../restaurants/blue-orchid/menu';
 import { config as aquaConfig, categoryFallbacks as aquaCategoryFallbacks } from '../restaurants/aqua/config';
 import { menuItems as aquaMenuItems } from '../restaurants/aqua/menu';
+import { config as entreeConfig, categoryFallbacks as entreeCategoryFallbacks } from '../restaurants/entree-steakhouse/config';
+import { menuItems as entreeMenuItems } from '../restaurants/entree-steakhouse/menu';
 
 type RestaurantEntry = {
   config: RestaurantConfig;
@@ -28,6 +30,11 @@ const registry: Record<string, RestaurantEntry> = {
     config: aquaConfig,
     menuItems: aquaMenuItems,
     categoryFallbacks: aquaCategoryFallbacks,
+  },
+  'entree-steakhouse': {
+    config: entreeConfig,
+    menuItems: entreeMenuItems,
+    categoryFallbacks: entreeCategoryFallbacks,
   },
 };
 
